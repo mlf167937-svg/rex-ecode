@@ -2,43 +2,106 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
-    background-color: #1e1e1e;
-    color: #d4d4d4;
+    background-color: #181824;
+    color: #e2e8f0;
     height: 100vh;
     overflow: hidden;
 }
 
+/* ==========================================
+   FITUR DETEKSI LAYAR HP PORTRAIT (WAJIB LANDSCAPE)
+   ========================================== */
+.rotate-warning {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle, #1a1a2e 0%, #0f0f1a 100%);
+    z-index: 99999;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 30px;
+}
+
+.warning-box {
+    max-width: 400px;
+}
+
+.rotate-icon {
+    font-size: 70px;
+    color: #38bdf8;
+    margin-bottom: 20px;
+    animation: rotateDevice 2s infinite ease-in-out;
+}
+
+.rotate-warning h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.rotate-warning p {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.6;
+}
+
+@keyframes rotateDevice {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(-90deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* Aturan CSS: Jika di HP/Device dengan layar kecil DAN posisinya berdiri (Portrait) */
+@media screen and (max-width: 900px) and (orientation: portrait) {
+    .rotate-warning {
+        display: flex; /* Munculkan layar peringatan */
+    }
+    .app-container {
+        display: none; /* Sembunyikan editor */
+    }
+}
+
+/* ==========================================
+   DESAIN UI IDE PREMIUM & KEREN
+   ========================================== */
 .app-container {
     display: flex;
     height: 100vh;
+    background-color: #11111b;
 }
 
-/* Sidebar Styling Premium */
+/* Sidebar Ala Cyberpunk Minimalis */
 .sidebar {
-    width: 260px;
-    background-color: #252526;
-    border-right: 1px solid #3c3c3c;
+    width: 250px;
+    background-color: #1e1e2e;
+    border-right: 1px solid #2d2d3d;
     display: flex;
     flex-direction: column;
 }
 
 .sidebar-header {
-    padding: 15px;
+    padding: 18px 20px;
     font-size: 11px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    color: #808080;
-    border-bottom: 1px solid #2d2d2d;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #6c7086;
+    border-bottom: 1px solid #252538;
 }
 
 .file-list {
     list-style: none;
     flex-grow: 1;
     overflow-y: auto;
+    padding: 10px 0;
 }
 
 .file-item {
@@ -46,141 +109,171 @@ body {
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     font-size: 14px;
-    color: #cccccc;
-    transition: background 0.2s;
+    color: #cdd6f4;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    margin: 2px 10px;
 }
 
 .file-item:hover {
-    background-color: #2a2d2e;
+    background-color: #252538;
+    color: #ffffff;
 }
 
 .file-item.active {
-    background-color: #37373d;
-    color: #ffffff;
-    border-left: 2px solid #007acc;
+    background-color: #2d2d4d;
+    color: #89b4fa;
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 #89b4fa;
 }
 
 .file-item i {
-    width: 16px;
+    font-size: 16px;
+    width: 18px;
 }
 
 .sidebar-actions {
     padding: 15px;
-    background-color: #1e1e1e;
-    border-top: 1px solid #3c3c3c;
+    background-color: #181825;
+    border-top: 1px solid #2d2d3d;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
 .sidebar-actions input {
-    padding: 8px 12px;
-    background: #3c3c3c;
-    border: 1px solid #555;
-    color: white;
-    border-radius: 4px;
+    padding: 10px 14px;
+    background: #313244;
+    border: 1px solid #45475a;
+    color: #cdd6f4;
+    border-radius: 8px;
     outline: none;
+    font-size: 13px;
+    transition: border 0.2s;
+}
+
+.sidebar-actions input:focus {
+    border-color: #89b4fa;
 }
 
 .sidebar-actions button {
-    padding: 8px;
-    background-color: #0e639c;
-    color: white;
+    padding: 10px;
+    background: linear-gradient(135deg, #89b4fa 0%, #74c7ec 100%);
+    color: #11111b;
     border: none;
-    border-radius: 4px;
-    font-weight: bold;
+    border-radius: 8px;
+    font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s;
+    font-size: 13px;
+    transition: transform 0.1s, opacity 0.2s;
 }
 
 .sidebar-actions button:hover {
-    background-color: #1177bb;
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
 
-/* Main Workspace Area */
+/* Workspace Area */
 .main-content {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     height: 100%;
+    background-color: #1e1e2e;
 }
 
 .editor-header {
-    background-color: #2d2d2d;
-    height: 40px;
+    background-color: #181825;
+    height: 45px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 15px;
-    border-bottom: 1px solid #1e1e1e;
+    padding: 0 20px;
+    border-bottom: 1px solid #11111b;
 }
 
 .active-tab {
-    background-color: #1e1e1e;
+    background-color: #1e1e2e;
     height: 100%;
     display: flex;
     align-items: center;
-    padding: 0 20px;
-    gap: 8px;
+    padding: 0 24px;
+    gap: 10px;
     font-size: 13px;
-    border-top: 1px solid #007acc;
+    color: #cdd6f4;
+    border-top: 2px solid #89b4fa;
+    border-radius: 6px 6px 0 0;
 }
 
 .action-buttons button {
-    padding: 6px 14px;
-    margin-left: 6px;
+    padding: 8px 16px;
+    margin-left: 8px;
     border: none;
-    border-radius: 3px;
+    border-radius: 6px;
     color: white;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
     font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
 }
 
-.btn-run { background-color: #28a745; }
-.btn-run:hover { background-color: #218838; }
-.btn-save { background-color: #007acc; }
-.btn-save:hover { background-color: #0062cc; }
+.btn-run {
+    background: linear-gradient(135deg, #a6e3a1 0%, #94e2d5 100%);
+    color: #11111b;
+}
+.btn-run:hover { opacity: 0.9; transform: scale(1.03); }
+
+.btn-save {
+    background-color: #313244;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+}
+.btn-save:hover { background-color: #45475a; color: #fff; }
 
 /* Wadah Monaco Editor */
 .editor-container {
     flex-grow: 1;
     height: 60%;
-    background-color: #1e1e1e;
+    background-color: #1e1e2e;
 }
 
-/* Terminal Panel Bawah */
+/* Terminal Modern Console */
 .terminal-panel {
     height: 35%;
-    background-color: #1e1e1e;
-    border-top: 3px solid #2d2d2d;
+    background-color: #11111b;
+    border-top: 1px solid #2d2d3d;
     display: flex;
     flex-direction: column;
 }
 
 .terminal-header {
-    background-color: #252526;
-    padding: 6px 15px;
+    background-color: #181825;
+    padding: 8px 20px;
     font-size: 11px;
-    font-weight: bold;
-    color: #aaaaaa;
-    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: #a6adc8;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #11111b;
 }
 
 .terminal-body {
     flex-grow: 1;
-    padding: 12px;
-    background-color: #000000;
+    padding: 15px;
+    background-color: #111119;
     overflow-y: auto;
 }
 
 #terminalOutput {
-    color: #4af626;
-    font-family: 'Fira Code', monospace;
+    color: #f5e0dc;
+    font-family: 'Fira Code', Consolas, Monaco, monospace;
     font-size: 14px;
     white-space: pre-wrap;
+    line-height: 1.5;
 }
 
 .html-preview {
@@ -188,5 +281,5 @@ body {
     height: 100%;
     background-color: #ffffff;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
 }
