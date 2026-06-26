@@ -8,35 +8,40 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-// Menyediakan file statis dari folder public (HTML, CSS, JS Premium)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Endpoint API untuk menerima kodingan dari Monaco Editor dan mengeksekusinya
 app.post('/api/execute', async (req, res) => {
     const { language, code } = req.body;
     
-    // Pemetaan ekstensi ke bahasa dan versi yang didukung Piston API
     const langMap = {
-        'py': { language: 'python', version: '3.10.0' },
-        'js': { language: 'javascript', version: '18.15.0' },
-        'php': { language: 'php', version: '8.2.3' },
-        'cpp': { language: 'c++', version: '10.2.0' }
+        'py': { url: 'https://glot.io/api/run/python/latest', filename: 'main.py' },
+        'js': { url: 'https://glot.io/api/run/javascript/latest', filename: 'main.js' },
+        'php': { url: 'https://glot.io/api/run/php/latest', filename: 'main.php' },
+        'cpp': { url: 'https://glot.io/api/run/cpp/latest', filename: 'main.cpp' }
     };
     
     const targetLang = langMap[language];
-    if (!targetLang) return res.status(400).json({ error: "Bahasa tidak didukung untuk dieksekusi." });
+    if (!targetLang) return res.status(400).json({ error: "Bahasa belum didukung." });
 
     try {
-        // Mengirimkan kode ke sandbox Piston API yang aman
-        const response = await axios.post('https://emkc.org/api/v2/piston/execute', {
-            language: targetLang.language,
-            version: targetLang.version,
-            files: [{ content: code }]
+        const response = await axios.post(targetLang.url, {
+            files: [
+                {
+                    name: targetLang.filename,
+                    content: code
+                }
+            ]
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         
-        // Mengembalikan hasil output console/terminal atau error bawaan compiler ke frontend
-        res.json({ output: response.data.run.output || response.data.run.stderr });
+        const output = response.data.stdout + response.data.stderr;
+        res.json({ output: output || "Program selesai dijalankan tanpa output." });
+
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: "Gagal eksekusi kode di server compiler." });
     }
 });
