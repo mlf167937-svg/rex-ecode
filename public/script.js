@@ -1,26 +1,37 @@
-let editor; // Variabel global untuk menampung Monaco Editor
+let editor; 
 let files = JSON.parse(localStorage.getItem('webIdeFiles')) || {
-    "main.py": 'print("Halo dari Python!")\n\n# Coba ketik "pri" di bawah ini untuk tes Autocomplete:\n',
-    "script.js": 'console.log("Halo dari JavaScript!");\n// Coba ketik "doc" atau "con"',
+    "main.py": 'print("Halo dari Python!")\n\n# Coba ketik huruf p di bawah ini, kotak print akan langsung muncul:\n',
+    "script.js": 'console.log("Halo dari JavaScript!");',
     "index.html": '<!DOCTYPE html>\n<html>\n<body>\n  <h1>Halo Dunia</h1>\n</body>\n</html>',
     "app.php": '<?php\necho "Halo dari PHP";\n?>',
     "main.cpp": '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Halo dari C++" << endl;\n    return 0;\n}'
 };
 let currentFile = "main.py";
 
-// Konfigurasi awal Monaco Editor dari Microsoft CDN
+// Load Monaco Editor dari Microsoft CDN
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
 require(['vs/editor/editor.main'], function() {
-    // Inisialisasi Editor dengan tema VS Code Dark
+    
+    // Inisialisasi Editor dengan pengaturan Autocomplete Super Sensitif
     editor = monaco.editor.create(document.getElementById('editorContainer'), {
         value: files[currentFile],
         language: 'python',
         theme: 'vs-dark',
         fontSize: 15,
         fontFamily: 'Fira Code, Consolas, monospace',
-        automaticLayout: true, // Otomatis menyesuaikan ukuran layar jika ditarik
-        suggestOnTriggerCharacters: true, // Aktifkan autocomplete cerdas saat mengetik huruf
-        minimap: { enabled: true } // Peta mini kode di sebelah kanan ala VS Code
+        automaticLayout: true,
+        
+        // PENGATURAN AGAR AUTOCOMPLETE MUNCUL OTOMATIS SAAT KETIK HURUF BIASA
+        suggestOnTriggerCharacters: true,
+        quickSuggestions: {
+            other: true,
+            comments: false,
+            strings: false
+        },
+        wordBasedSuggestions: "allDocuments",
+        snippetSuggestions: "top",
+        
+        minimap: { enabled: true }
     });
 
     updateFileList();
@@ -59,7 +70,6 @@ function updateFileList() {
 
 function openFile(name) {
     if (editor) {
-        // Simpan kode file lama sebelum pindah
         files[currentFile] = editor.getValue();
     }
     
@@ -68,7 +78,6 @@ function openFile(name) {
     updateFileList();
 
     if (editor) {
-        // Update isi konten dan bahasa pemrograman pada editor secara dinamis
         editor.setValue(files[name]);
         monaco.editor.setModelLanguage(editor.getModel(), getLanguageByExtension(name));
     }
@@ -111,8 +120,8 @@ async function runCode() {
     terminal.innerText = "Menjalankan program... ⏳";
 
     try {
-        // Ganti URL di bawah dengan alamat Render punyamu!
-        const res = await fetch('https://alamat-web-kamu.onrender.com/api/execute', {
+        // MENGGUNAKAN URL RENDER KAMU SECARA OTOMATIS ATAU REKSA KODE LANGSUNG
+        const res = await fetch('https://rex-ecode.onrender.com/api/execute', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ language: ext, code: code })
