@@ -1,1 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web IDE Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fa-solid fa-code"></i> Workspace</h3>
+            </div>
+            <ul class="file-list" id="fileList"></ul>
+            <div class="sidebar-actions">
+                <input type="text" id="newFileName" placeholder="nama_file.py / .js / .html">
+                <button onclick="createNewFile()"><i class="fa-solid fa-plus"></i> Tambah</button>
+            </div>
+        </aside>
 
+        <main class="editor-area">
+            <div class="editor-header">
+                <span id="currentFileName">main.py</span>
+                <div class="editor-buttons">
+                    <button onclick="runCode()" class="btn-run"><i class="fa-solid fa-play"></i> Run Code</button>
+                    <button onclick="saveFile()" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+                </div>
+            </div>
+            
+            <div class="code-container">
+                <textarea id="codeEditor" spellcheck="false"></textarea>
+            </div>
+
+            <div class="output-area">
+                <div class="output-header">Output / Preview</div>
+                <pre id="terminalOutput">Hasil eksekusi akan muncul di sini...</pre>
+                <iframe id="htmlPreview" style="display: none; width: 100%; height: 100%; background: white; border: none;"></iframe>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
