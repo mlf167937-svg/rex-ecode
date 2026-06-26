@@ -1,11 +1,10 @@
 let files = JSON.parse(localStorage.getItem('webIdeFiles')) || {
-    "main.py": 'print("Halo dari Python!")\n\n# Coba run file ini!',
+    "main.py": 'print("Halo dari Python!")',
     "script.js": 'console.log("Halo dari JavaScript!");',
-    "index.html": '<h1>Halo Dunia!</h1>\n<p>HTML berjalan langsung di browser.</p>',
-    "app.php": '<?php\n  echo "Halo dari PHP!";\n?>',
-    "main.cpp": '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Halo dari C++!";\n    return 0;\n}'
+    "index.html": '<h1>Halo dari HTML</h1>',
+    "app.php": '<?php echo "Halo dari PHP"; ?>',
+    "main.cpp": '#include <iostream>\nint main() { std::cout << "Halo C++"; return 0; }'
 };
-
 let currentFile = "main.py";
 
 window.onload = () => { updateFileList(); openFile(currentFile); };
@@ -13,37 +12,31 @@ window.onload = () => { updateFileList(); openFile(currentFile); };
 function updateFileList() {
     const list = document.getElementById('fileList');
     list.innerHTML = '';
-    Object.keys(files).forEach(fileName => {
+    Object.keys(files).forEach(name => {
         const li = document.createElement('li');
-        li.className = `file-item ${currentFile === fileName ? 'active' : ''}`;
-        li.innerHTML = `<i class="fa-solid fa-file-code"></i> ${fileName}`;
-        li.onclick = () => openFile(fileName);
+        li.innerText = name;
+        li.style.padding = '8px';
+        li.style.cursor = 'pointer';
+        li.style.color = currentFile === name ? '#569cd6' : '#fff';
+        li.onclick = () => openFile(name);
         list.appendChild(li);
     });
 }
 
-function openFile(fileName) {
-    currentFile = fileName;
-    document.getElementById('currentFileName').innerText = fileName;
-    document.getElementById('codeEditor').value = files[fileName];
+function openFile(name) {
+    currentFile = name;
+    document.getElementById('currentFileName').innerText = name;
+    document.getElementById('codeEditor').value = files[name];
     updateFileList();
-    
-    // Reset output area
-    document.getElementById('terminalOutput').style.display = 'block';
-    document.getElementById('terminalOutput').innerText = 'Hasil eksekusi akan muncul di sini...';
-    document.getElementById('htmlPreview').style.display = 'none';
 }
 
 function createNewFile() {
-    const nameInput = document.getElementById('newFileName');
-    const fileName = nameInput.value.trim();
-    if (!fileName) return;
-    if (files[fileName]) return alert("File sudah ada!");
-
-    files[fileName] = `// Mulai koding ${fileName}`;
-    nameInput.value = "";
-    saveFile();
-    openFile(fileName);
+    const input = document.getElementById('newFileName');
+    const name = input.value.trim();
+    if (!name || files[name]) return;
+    files[name] = '// Kode baru';
+    input.value = '';
+    openFile(name);
 }
 
 function saveFile() {
@@ -51,43 +44,33 @@ function saveFile() {
     localStorage.setItem('webIdeFiles', JSON.stringify(files));
 }
 
-// FUNGSI UNTUK MENJALANKAN KODE
 async function runCode() {
-    saveFile(); // Simpan sebelum jalan
+    saveFile();
     const code = document.getElementById('codeEditor').value;
-    const extension = currentFile.split('.').pop();
-    
+    const ext = currentFile.split('.').pop();
     const terminal = document.getElementById('terminalOutput');
     const iframe = document.getElementById('htmlPreview');
 
-    // Jika file HTML, jalankan di iframe
-    if (extension === 'html') {
+    if (ext === 'html') {
         terminal.style.display = 'none';
         iframe.style.display = 'block';
         iframe.srcdoc = code;
         return;
     }
 
-    // Jika bukan HTML, jalankan via Backend
     terminal.style.display = 'block';
     iframe.style.display = 'none';
-    terminal.innerText = "Menjalankan kode... Mohon tunggu ⏳";
+    terminal.innerText = "Menjalankan kode...";
 
     try {
-        const response = await fetch('/api/execute', {
+        const res = await fetch('/api/execute', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ language: extension, code: code })
+            body: JSON.stringify({ language: ext, code: code })
         });
-        
-        const data = await response.json();
-        
-        if (data.error) {
-            terminal.innerText = `Error: ${data.error}`;
-        } else {
-            terminal.innerText = data.output || "Program selesai tanpa output.";
-        }
+        const data = await res.json();
+        terminal.innerText = data.output || "Selesai tanpa output.";
     } catch (err) {
-        terminal.innerText = "Gagal terhubung ke server eksekusi.";
+        terminal.innerText = "Error koneksi server.";
     }
 }
