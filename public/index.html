@@ -2,34 +2,51 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Rex eCode IDE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rex eCode IDE Pro</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
 </head>
 <body>
-    <div style="display: flex; height: 100vh;">
-        <div style="width: 250px; background: #252526; padding: 15px; color: white;">
-            <h3>Workspace</h3>
-            <ul id="fileList" style="list-style: none; padding: 0; margin-top: 20px;"></ul>
-            <input type="text" id="newFileName" placeholder="main.py / script.js" style="width: 100%; padding: 5px; margin-top: 10px;">
-            <button onclick="createNewFile()" style="width: 100%; margin-top: 5px; padding: 5px; background: #007acc; color: white; border: none;">+ Tambah</button>
-        </div>
-        <div style="flex-grow: 1; display: flex; flex-direction: column; background: #1e1e1e;">
-            <div style="padding: 10px; background: #2d2d2d; display: flex; justify-content: space-between; color: white;">
-                <span id="currentFileName">main.py</span>
-                <div>
-                    <button onclick="runCode()" style="background: #28a745; color: white; border: none; padding: 5px 15px;">Run</button>
-                    <button onclick="saveFile()" style="background: #007acc; color: white; border: none; padding: 5px 15px;">Simpan</button>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fa-solid fa-folder-tree"></i> EXPLORER</h3>
+            </div>
+            <ul id="fileList" class="file-list"></ul>
+            <div class="sidebar-actions">
+                <input type="text" id="newFileName" placeholder="contoh: main.py, script.js">
+                <button onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i> Tambah</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="editor-header">
+                <div class="active-tab">
+                    <i class="fa-solid fa-code" id="fileIcon"></i>
+                    <span id="currentFileName">main.py</span>
+                </div>
+                <div class="action-buttons">
+                    <button onclick="runCode()" class="btn-run"><i class="fa-solid fa-play"></i> Run</button>
+                    <button onclick="saveFile()" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
                 </div>
             </div>
-            <textarea id="codeEditor" style="flex-grow: 1; background: #1e1e1e; color: #9cdcfe; font-family: monospace; font-size: 16px; padding: 15px; border: none; resize: none; outline: none;"></textarea>
-            <div style="height: 30%; background: #000; color: #4af626; padding: 15px; font-family: monospace; overflow-y: auto; border-top: 2px solid #333;">
-                <div style="color: #888; font-size: 12px; margin-bottom: 5px;">Terminal Output:</div>
-                <pre id="terminalOutput">Klik Run untuk menjalankan kode...</pre>
-                <iframe id="htmlPreview" style="display: none; width: 100%; height: 100%; background: white; border: none;"></iframe>
+
+            <div id="editorContainer" class="editor-container"></div>
+
+            <div class="terminal-panel">
+                <div class="terminal-header">
+                    <span><i class="fa-solid fa-terminal"></i> TERMINAL OUTPUT</span>
+                </div>
+                <div class="terminal-body">
+                    <pre id="terminalOutput">Klik Run untuk mengeksekusi program...</pre>
+                    <iframe id="htmlPreview" class="html-preview" style="display: none;"></iframe>
+                </div>
             </div>
-        </div>
+        </main>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
