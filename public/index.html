@@ -3,12 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rex eCode IDE Pro</title>
+    <title>Rex eCode IDE Premium</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
 </head>
 <body>
+
+    <div id="rotateWarning" class="rotate-warning">
+        <div class="warning-box">
+            <i class="fa-solid fa-mobile-screen-button rotate-icon"></i>
+            <h2>Mode Landscape Diperlukan</h2>
+            <p>Untuk pengalaman coding terbaik ala VS Code di HP, silakan aktifkan rotasi otomatis dan miringkan HP kamu.</p>
+        </div>
+    </div>
+
     <div class="app-container">
         <aside class="sidebar">
             <div class="sidebar-header">
@@ -16,8 +25,8 @@
             </div>
             <ul id="fileList" class="file-list"></ul>
             <div class="sidebar-actions">
-                <input type="text" id="newFileName" placeholder="contoh: main.py, script.js">
-                <button onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i> Tambah</button>
+                <input type="text" id="newFileName" placeholder="Nama file baru...">
+                <button onclick="createNewFile()"><i class="fa-solid fa-plus"></i> File Baru</button>
             </div>
         </aside>
 
@@ -37,7 +46,7 @@
 
             <div class="terminal-panel">
                 <div class="terminal-header">
-                    <span><i class="fa-solid fa-terminal"></i> TERMINAL OUTPUT</span>
+                    <span><i class="fa-solid fa-terminal"></i> OUTPUT TERMINAL</span>
                 </div>
                 <div class="terminal-body">
                     <pre id="terminalOutput">Klik Run untuk mengeksekusi program...</pre>
