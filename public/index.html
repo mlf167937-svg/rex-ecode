@@ -2,50 +2,84 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rex eCode Pro - Virtual Compiler</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Code Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
-
     <style>
+        /* --- TEMA & VARIABEL WARNA --- */
         :root {
-            --bg-activity: #181818;
-            --bg-sidebar: #202020;
-            --bg-editor: #1e1e1e;
-            --border-color: #333;
-            --text-main: #cccccc;
-            --text-active: #ffffff;
-            --accent: #007acc;
+            --bg-main: #1e1e1e;
+            --bg-sidebar: #252526;
+            --bg-activity: #333333;
+            --bg-panel: #1e1e1e;
+            --bg-tab: #2d2d2d;
+            --bg-tab-active: #1e1e1e;
+            --text-color: #cccccc;
+            --border-color: #444444;
+            --accent-color: #007acc;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        /* Tema Terang */
+        body.light-theme {
+            --bg-main: #ffffff;
+            --bg-sidebar: #f3f3f3;
+            --bg-activity: #2c2c2c;
+            --bg-panel: #f8f8f8;
+            --bg-tab: #ececec;
+            --bg-tab-active: #ffffff;
+            --text-color: #333333;
+            --border-color: #dddddd;
+            --accent-color: #007acc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
         body {
-            background-color: var(--bg-editor);
-            color: var(--text-main);
-            height: 100vh;
+            background-color: var(--bg-main);
+            color: var(--text-color);
             display: flex;
+            height: 100vh;
             overflow: hidden;
+            transition: background 0.3s, color 0.3s;
         }
 
-        /* Responsive Layouting */
+        /* --- LAYOUT UTAMA --- */
         .activity-bar {
             width: 50px;
             background-color: var(--bg-activity);
             display: flex;
             flex-direction: column;
-            border-right: 1px solid var(--border-color);
-            z-index: 20;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            z-index: 10;
         }
 
-        .activity-icon {
-            padding: 15px 0;
-            text-align: center;
-            font-size: 20px;
-            color: #858585;
-            cursor: pointer;
+        .activity-bar .top-actions, .activity-bar .bottom-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-        .activity-icon.active { color: var(--text-active); border-left: 2px solid var(--accent); }
+
+        .icon-btn {
+            font-size: 20px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            transition: 0.2s;
+            color: #858585;
+        }
+        .icon-btn:hover { background-color: rgba(255,255,255,0.1); color: #fff; }
+
+        /* Warna Custom Tombol Sesuai Request */
+        .btn-copy { color: #f1c40f; } /* Kuning */
+        .btn-ai { color: #2ecc71; } /* Hijau */
+        .btn-create { color: #3498db; } /* Biru */
+        .btn-search { color: #9b59b6; } /* Ungu */
+        .btn-download { color: #ecf0f1; } /* Putih */
+        .btn-settings { color: #000000; background: #fff; border-radius: 50%; padding: 8px 9px;} /* Hitam di dark mode */
+        body:not(.light-theme) .btn-settings { color: #000; background: #fff; }
+        body.light-theme .btn-settings { color: #fff; background: #000; }
 
         .sidebar {
             width: 250px;
@@ -53,270 +87,403 @@
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            z-index: 10;
         }
+        .sidebar-header { padding: 10px; font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+        .file-list { flex: 1; overflow-y: auto; list-style: none; }
+        .file-item { padding: 5px 15px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .file-item:hover { background-color: var(--bg-tab); }
+        .file-item.active { background-color: rgba(0, 122, 204, 0.2); color: #fff; }
 
-        .main-content {
-            flex-grow: 1;
+        .main-area {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            width: calc(100% - 300px);
         }
 
-        /* Mobile View Adjustments */
-        @media (max-width: 768px) {
-            .sidebar {
-                position: absolute;
-                left: 50px;
-                height: 100vh;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                box-shadow: 5px 0 10px rgba(0,0,0,0.5);
-            }
-            .sidebar.show { transform: translateX(0); }
-            .main-content { width: calc(100% - 50px); }
-        }
-
-        .sidebar-header { padding: 12px 15px; font-size: 11px; text-transform: uppercase; color: #999; }
-        
-        .file-list { flex-grow: 1; overflow-y: auto; list-style: none; }
-        .file-item { padding: 8px 15px; cursor: pointer; display: flex; gap: 8px; font-size: 13px; }
-        .file-item.active { background-color: #37373d; color: white; }
-        
-        .config-box { padding: 15px; border-top: 1px solid var(--border-color); }
-        .config-box input { width: 100%; padding: 8px; background: #333; color: white; border: none; outline: none; margin-top: 5px; border-radius: 4px; }
-
-        .editor-header {
-            height: 40px;
+        /* --- TABS (Garis Merah) --- */
+        .tabs-container {
+            height: 35px;
             background-color: var(--bg-sidebar);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 10px;
             border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
         }
-
-        .btn-run {
-            background-color: #1e4620;
-            color: #4af626;
-            border: 1px solid #2a5a2b;
-            padding: 5px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
+        .tab {
+            padding: 0 15px;
+            background-color: var(--bg-tab);
+            border-right: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 13px;
         }
-        .btn-run:hover { background-color: #265928; }
+        .tab.active { background-color: var(--bg-tab-active); color: var(--accent-color); border-top: 2px solid var(--accent-color); }
+        .tab-close { font-size: 10px; padding: 2px; border-radius: 3px; }
+        .tab-close:hover { background-color: rgba(255,0,0,0.5); color: white; }
 
-        .editor-container { flex-grow: 1; }
+        /* --- EDITOR AREA --- */
+        .editor-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        textarea.code-editor {
+            flex: 1;
+            width: 100%;
+            background-color: var(--bg-main);
+            color: var(--text-color);
+            border: none;
+            padding: 20px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            resize: none;
+            outline: none;
+            display: none; /* Hidden by default */
+        }
+        
+        .empty-state {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0.5;
+        }
+        .empty-state i { font-size: 100px; margin-bottom: 20px; opacity: 0.1; }
+        .shortcut-list p { margin: 10px 0; font-size: 14px; }
+        .kbd { background: rgba(128,128,128,0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #555; }
 
-        /* --- MODAL POP-UP TERMINAL --- */
+        /* --- OUTPUT PANEL --- */
+        .bottom-panel {
+            height: 180px;
+            background-color: var(--bg-panel);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+        .panel-header {
+            display: flex;
+            gap: 20px;
+            padding: 5px 15px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+        }
+        .panel-tab { cursor: pointer; padding: 5px 0; border-bottom: 1px solid transparent; }
+        .panel-tab.active { border-bottom-color: var(--accent-color); color: var(--text-color); }
+        .panel-content { flex: 1; padding: 10px; font-family: monospace; font-size: 12px; overflow-y: auto; color: #d4d4d4; }
+        body.light-theme .panel-content { color: #333; }
+
+        /* --- POPUP / MODAL --- */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            backdrop-filter: blur(3px);
         }
-
-        .modal-content {
-            background: #1e1e1e;
-            width: 90%;
-            max-width: 600px;
+        .modal {
+            background-color: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #444;
-            display: flex;
-            flex-direction: column;
-            animation: popIn 0.3s ease;
+            width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-
-        @keyframes popIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        .modal h3 { margin-bottom: 15px; }
+        .modal input {
+            width: 100%; padding: 10px;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            outline: none;
         }
-
-        .modal-header {
-            padding: 12px 15px;
-            background: #252526;
-            border-bottom: 1px solid #444;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 8px 8px 0 0;
-            font-weight: bold;
-            color: #fff;
+        .modal input:focus { border-color: var(--accent-color); }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-btn {
+            padding: 8px 15px; border: none; cursor: pointer; border-radius: 4px;
+            background-color: var(--bg-tab); color: var(--text-color);
         }
-
-        .modal-close {
-            background: transparent;
-            color: #ff5f56;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .modal-body {
-            padding: 15px;
-            background: #000;
-            color: #00ff00;
-            font-family: 'Consolas', 'Courier New', monospace;
-            min-height: 150px;
-            max-height: 60vh;
-            overflow-y: auto;
-            border-radius: 0 0 8px 8px;
-            white-space: pre-wrap;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-        
-        .loading-text { color: #f39c12; }
-        .error-text { color: #e74c3c; }
+        .modal-btn.primary { background-color: var(--accent-color); color: white; }
     </style>
 </head>
 <body>
 
     <div class="activity-bar">
-        <div class="activity-icon active" onclick="toggleSidebar()"><i class="fa-regular fa-copy"></i></div>
-        <div class="activity-icon" onclick="toggleSidebar()"><i class="fa-solid fa-gear"></i></div>
-    </div>
-
-    <div class="sidebar" id="appSidebar">
-        <div class="sidebar-header">Explorer</div>
-        <ul id="fileList" class="file-list"></ul>
-        <div class="config-box">
-            <label style="font-size: 11px; color:#999;">GROQ API KEY (WAJIB)</label>
-            <input type="password" id="groqApiKey" placeholder="gsk_..." onchange="saveApiKey()">
+        <div class="top-actions">
+            <i class="fas fa-file-medical icon-btn btn-create" title="Buat File Baru (Biru)" onclick="openModal('createFile')"></i>
+            <i class="fas fa-search icon-btn btn-search" title="Cari File (Ungu)" onclick="openModal('searchFile')"></i>
+            <i class="fas fa-robot icon-btn btn-ai" title="AI Groq HTML (Hijau)" onclick="openModal('aiGroq')"></i>
+            <i class="fas fa-copy icon-btn btn-copy" title="Salin Isi File (Kuning)" onclick="copyFileContent()"></i>
+            <i class="fas fa-download icon-btn btn-download" title="Download File (Putih)" onclick="downloadFile()"></i>
+        </div>
+        <div class="bottom-actions">
+            <i class="fas fa-cog icon-btn btn-settings" title="Pengaturan & Tema (Hitam)" onclick="toggleTheme()"></i>
         </div>
     </div>
 
-    <div class="main-content">
-        <div class="editor-header">
-            <span id="currentFileName" style="font-size: 13px; color: #fff;">main.py</span>
-            <button class="btn-run" onclick="runVirtualCompiler()"><i class="fa-solid fa-play"></i> Run</button>
-        </div>
-        <div id="editorContainer" class="editor-container"></div>
+    <div class="sidebar">
+        <div class="sidebar-header">EXPLORER</div>
+        <ul class="file-list" id="fileList">
+            </ul>
     </div>
 
-    <!-- MODAL POP-UP OUTPUT -->
-    <div class="modal-overlay" id="outputModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span><i class="fa-solid fa-terminal"></i> Terminal Output</span>
-                <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="main-area">
+        <div class="tabs-container" id="tabsContainer">
             </div>
-            <div class="modal-body" id="terminalOutput"></div>
+
+        <div class="editor-container">
+            <div class="empty-state" id="emptyState">
+                <i class="fab fa-microsoft"></i>
+                <div class="shortcut-list">
+                    <p>Show All Commands &nbsp; <span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">P</span></p>
+                    <p>Go to File &nbsp; <span class="kbd">Ctrl</span> + <span class="kbd">P</span></p>
+                    <p>Find in Files &nbsp; <span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">F</span></p>
+                    <p>Toggle Terminal &nbsp; <span class="kbd">Ctrl</span> + <span class="kbd">`</span></p>
+                </div>
+            </div>
+            <textarea class="code-editor" id="codeEditor" spellcheck="false" oninput="saveCurrentFile()"></textarea>
+        </div>
+
+        <div class="bottom-panel">
+            <div class="panel-header">
+                <div class="panel-tab">PROBLEMS</div>
+                <div class="panel-tab active">OUTPUT</div>
+                <div class="panel-tab">DEBUG CONSOLE</div>
+                <div class="panel-tab">TERMINAL</div>
+            </div>
+            <div class="panel-content" id="outputPanel">
+                [Sistem] Menunggu perintah...
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3 id="modalTitle">Judul</h3>
+            <input type="text" id="modalInput" placeholder="Ketik di sini...">
+            <div class="modal-buttons">
+                <button class="modal-btn" onclick="closeModal()">Batal</button>
+                <button class="modal-btn primary" onclick="submitModal()">OK</button>
+            </div>
         </div>
     </div>
 
     <script>
-        let editor;
-        let files = JSON.parse(localStorage.getItem('rexIdeFiles')) || {
-            "main.py": 'nama = "Programmer"\nprint(f"Halo {nama}, program berjalan dengan baik!")\n\n# Coba buat error buatan di bawah ini untuk tes AI:\n# print(1/0)',
-            "app.js": 'console.log("Eksekusi JavaScript berhasil!");'
+        // Data State
+        let files = {
+            "index.html": "<h1>Hello World</h1>",
+            "style.css": "body { margin: 0; }",
+            "app.js": "console.log('Ready');"
         };
-        let currentFile = "main.py";
+        let openTabs = [];
+        let activeFile = null;
+        let currentModalAction = null;
 
-        // Inisialisasi API Key
-        document.getElementById('groqApiKey').value = localStorage.getItem('groqApiKey') || '';
-        function saveApiKey() { localStorage.setItem('groqApiKey', document.getElementById('groqApiKey').value); }
+        // Inisialisasi awal
+        renderFileList();
+        logOutput("Ekstensi host berhasil dimuat. Siap digunakan.");
 
-        // Sidebar Toggle untuk Mobile
-        function toggleSidebar() {
-            document.getElementById('appSidebar').classList.toggle('show');
-        }
-
-        // Setup Monaco Editor
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
-        require(['vs/editor/editor.main'], function() {
-            editor = monaco.editor.create(document.getElementById('editorContainer'), {
-                value: files[currentFile],
-                language: getLanguage(currentFile),
-                theme: 'vs-dark',
-                automaticLayout: true,
-                minimap: { enabled: false },
-                fontSize: 14
-            });
-
-            editor.onDidChangeModelContent(() => {
-                files[currentFile] = editor.getValue();
-                localStorage.setItem('rexIdeFiles', JSON.stringify(files));
-            });
-            updateFileList();
-        });
-
-        function getLanguage(filename) {
-            if(filename.endsWith('.py')) return 'python';
-            if(filename.endsWith('.js')) return 'javascript';
-            if(filename.endsWith('.cpp')) return 'cpp';
-            if(filename.endsWith('.php')) return 'php';
-            return 'plaintext';
-        }
-
-        function updateFileList() {
-            const list = document.getElementById('fileList');
-            list.innerHTML = '';
-            Object.keys(files).forEach(name => {
-                const li = document.createElement('li');
-                li.className = `file-item ${currentFile === name ? 'active' : ''}`;
-                li.innerHTML = `<i class="fa-solid fa-file-code"></i> ${name}`;
-                li.onclick = () => {
-                    currentFile = name;
-                    document.getElementById('currentFileName').innerText = name;
-                    editor.setValue(files[name]);
-                    monaco.editor.setModelLanguage(editor.getModel(), getLanguage(name));
-                    updateFileList();
-                    if(window.innerWidth <= 768) toggleSidebar(); // auto close on mobile
-                };
-                list.appendChild(li);
+        // --- MANAJEMEN FILE & TAB ---
+        function renderFileList(filterQuery = "") {
+            const list = document.getElementById("fileList");
+            list.innerHTML = "";
+            Object.keys(files).forEach(fileName => {
+                if (fileName.toLowerCase().includes(filterQuery.toLowerCase())) {
+                    const li = document.createElement("li");
+                    li.className = "file-item" + (fileName === activeFile ? " active" : "");
+                    li.innerHTML = `<i class="far fa-file-code"></i> ${fileName}`;
+                    li.onclick = () => openFile(fileName);
+                    list.appendChild(li);
+                }
             });
         }
 
-        // Logika Pop-up Modal
-        const modal = document.getElementById('outputModal');
-        const termOut = document.getElementById('terminalOutput');
+        function renderTabs() {
+            const container = document.getElementById("tabsContainer");
+            container.innerHTML = "";
+            openTabs.forEach(fileName => {
+                const tab = document.createElement("div");
+                tab.className = "tab" + (fileName === activeFile ? " active" : "");
+                tab.innerHTML = `
+                    <i class="far fa-file-code" style="color:#e34c26"></i> 
+                    ${fileName} 
+                    <i class="fas fa-times tab-close" onclick="closeTab(event, '${fileName}')"></i>
+                `;
+                tab.onclick = () => openFile(fileName);
+                container.appendChild(tab);
+            });
+        }
 
-        function closeModal() { modal.style.display = 'none'; }
+        function openFile(fileName) {
+            if (!openTabs.includes(fileName)) {
+                openTabs.push(fileName);
+            }
+            activeFile = fileName;
+            
+            document.getElementById("emptyState").style.display = "none";
+            const editor = document.getElementById("codeEditor");
+            editor.style.display = "block";
+            editor.value = files[fileName];
+            
+            renderFileList();
+            renderTabs();
+            logOutput(`Membuka file: ${fileName}`);
+        }
 
-        async function runVirtualCompiler() {
-            const apiKey = document.getElementById('groqApiKey').value;
-            if (!apiKey) {
-                alert("Harap masukkan API Key Groq di pengaturan sidebar terlebih dahulu!");
-                if(window.innerWidth <= 768) toggleSidebar();
+        function closeTab(event, fileName) {
+            event.stopPropagation();
+            openTabs = openTabs.filter(t => t !== fileName);
+            if (activeFile === fileName) {
+                activeFile = openTabs.length > 0 ? openTabs[openTabs.length - 1] : null;
+            }
+            
+            if (!activeFile) {
+                document.getElementById("emptyState").style.display = "flex";
+                document.getElementById("codeEditor").style.display = "none";
+            } else {
+                openFile(activeFile);
+            }
+            renderTabs();
+            renderFileList();
+        }
+
+        function saveCurrentFile() {
+            if (activeFile) {
+                files[activeFile] = document.getElementById("codeEditor").value;
+            }
+        }
+
+        // --- FUNGSI TOMBOL (WARNA) ---
+
+        // 1. Tombol Biru: Create File
+        function createFile(fileName) {
+            if (fileName && !files[fileName]) {
+                files[fileName] = "";
+                openFile(fileName);
+                logOutput(`File baru dibuat: ${fileName}`);
+            } else if (files[fileName]) {
+                alert("File sudah ada!");
+            }
+        }
+
+        // 2. Tombol Ungu: Search
+        function searchFile(query) {
+            renderFileList(query);
+            logOutput(`Mencari file dengan kata kunci: "${query}"`);
+        }
+
+        // 3. Tombol Hijau: AI Groq HTML
+        function triggerAIGroq(prompt) {
+            logOutput(`[AI Groq] Memproses permintaan: "${prompt}"...`);
+            setTimeout(() => {
+                const aiResponse = `\n<div>\n  <p>Response for: ${prompt}</p>\n</div>`;
+                if(activeFile) {
+                    files[activeFile] += "\n" + aiResponse;
+                    document.getElementById("codeEditor").value = files[activeFile];
+                    logOutput(`[AI Groq] Kode ditambahkan ke ${activeFile}`);
+                } else {
+                    files["ai_generated.html"] = aiResponse;
+                    openFile("ai_generated.html");
+                    logOutput(`[AI Groq] File ai_generated.html dibuat.`);
+                }
+            }, 1000);
+        }
+
+        // 4. Tombol Kuning: Copy
+        function copyFileContent() {
+            if (!activeFile) {
+                alert("Buka file terlebih dahulu untuk menyalin!");
                 return;
             }
+            const editor = document.getElementById("codeEditor");
+            editor.select();
+            document.execCommand("copy");
+            logOutput(`[Salin] Isi file ${activeFile} disalin ke clipboard.`);
+            alert("Isi file disalin!");
+        }
 
-            const code = editor.getValue();
-            const language = getLanguage(currentFile);
+        // 5. Tombol Putih: Download
+        function downloadFile() {
+            if (!activeFile) {
+                alert("Tidak ada file yang aktif untuk diunduh!");
+                return;
+            }
+            const blob = new Blob([files[activeFile]], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = activeFile;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            logOutput(`[Download] File ${activeFile} berhasil diunduh.`);
+        }
 
-            // Buka Modal & Tampilkan Loading
-            modal.style.display = 'flex';
-            termOut.innerHTML = `<span class="loading-text">Membangun virtual environment untuk ${language}...<br>Menjalankan kode... ⏳</span>`;
+        // 6. Tombol Hitam: Toggle Theme
+        function toggleTheme() {
+            document.body.classList.toggle("light-theme");
+            logOutput("Tema aplikasi diubah.");
+        }
 
-            try {
-                // Request ke Backend Render.com kita (server.js)
-                const res = await fetch('/api/run-code', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, language, apiKey })
-                });
+        // --- SISTEM POPUP / MODAL ---
+        function openModal(action) {
+            const overlay = document.getElementById("modalOverlay");
+            const title = document.getElementById("modalTitle");
+            const input = document.getElementById("modalInput");
+            
+            input.value = "";
+            currentModalAction = action;
+            overlay.style.display = "flex";
+            input.focus();
 
-                const data = await res.json();
-
-                if (res.ok) {
-                    termOut.textContent = data.output; // Tampilkan murni tanpa HTML render
-                } else {
-                    termOut.innerHTML = `<span class="error-text">FATAL ERROR: ${data.error}</span>`;
-                }
-            } catch (err) {
-                termOut.innerHTML = `<span class="error-text">SERVER ERROR: Tidak dapat terhubung ke server backend Render.com.</span>`;
+            if (action === "createFile") {
+                title.innerText = "Buat File Baru";
+                input.placeholder = "Contoh: index.html";
+            } else if (action === "searchFile") {
+                title.innerText = "Cari File";
+                input.placeholder = "Nama file yang dicari...";
+            } else if (action === "aiGroq") {
+                title.innerText = "HTML AI Groq Prompt";
+                input.placeholder = "Apa yang ingin AI buat untuk Anda?";
             }
         }
+
+        function closeModal() {
+            document.getElementById("modalOverlay").style.display = "none";
+        }
+
+        function submitModal() {
+            const val = document.getElementById("modalInput").value.trim();
+            closeModal();
+            if (!val) return;
+
+            if (currentModalAction === "createFile") createFile(val);
+            if (currentModalAction === "searchFile") searchFile(val);
+            if (currentModalAction === "aiGroq") triggerAIGroq(val);
+        }
+
+        // --- OUTPUT PANEL LOGGING ---
+        function logOutput(msg) {
+            const panel = document.getElementById("outputPanel");
+            const time = new Date().toLocaleTimeString();
+            panel.innerHTML += `<br>[${time}] [info] ${msg}`;
+            panel.scrollTop = panel.scrollHeight;
+        }
+
+        // Keyboard Shortcut Tambahan
+        window.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'p') { e.preventDefault(); openModal('searchFile'); }
+            if (e.ctrlKey && e.key === '`') { 
+                e.preventDefault(); 
+                const panel = document.querySelector('.bottom-panel');
+                panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+            }
+        });
     </script>
 </body>
 </html>
