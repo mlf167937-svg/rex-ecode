@@ -1,7 +1,7 @@
 {
-  "name": "web-ide-render",
+  "name": "rex-ecode",
   "version": "1.0.0",
-  "description": "Web IDE with Code Execution",
+  "description": "Web IDE Compiler",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
