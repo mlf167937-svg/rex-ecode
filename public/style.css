@@ -1,26 +1,6 @@
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-body { background: #1e1e1e; color: #d4d4d4; height: 100vh; overflow: hidden; }
-
-.app-container { display: flex; height: 100vh; }
-
-.sidebar { width: 250px; background: #252526; border-right: 1px solid #3c3c3c; display: flex; flex-direction: column; }
-.sidebar-header { padding: 15px; background: #2d2d2d; font-weight: bold; }
-.file-list { list-style: none; flex-grow: 1; overflow-y: auto; }
-.file-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #2d2d2d; }
-.file-item:hover, .file-item.active { background: #37373d; color: #569cd6; }
-.sidebar-actions { padding: 15px; background: #2d2d2d; display: flex; gap: 5px; }
-.sidebar-actions input { width: 100%; padding: 5px; background: #3c3c3c; color: white; border: 1px solid #555; }
-.sidebar-actions button { padding: 5px 10px; background: #007acc; color: white; border: none; cursor: pointer; }
-
-.editor-area { flex-grow: 1; display: flex; flex-direction: column; }
-.editor-header { padding: 10px 20px; background: #1e1e1e; display: flex; justify-content: space-between; border-bottom: 1px solid #333; }
-.editor-buttons button { padding: 5px 15px; margin-left: 5px; border: none; color: white; cursor: pointer; font-weight: bold;}
-.btn-run { background: #28a745; }
-.btn-save { background: #007acc; }
-
-.code-container { flex-grow: 1; display: flex; height: 60%; }
-#codeEditor { flex-grow: 1; background: #1e1e1e; color: #9cdcfe; font-family: monospace; font-size: 16px; padding: 15px; border: none; resize: none; outline: none; }
-
-.output-area { height: 35%; background: #000; border-top: 2px solid #333; display: flex; flex-direction: column;}
-.output-header { background: #2d2d2d; padding: 5px 15px; font-size: 12px; font-weight: bold; color: #ccc;}
-#terminalOutput { padding: 15px; color: #4af626; font-family: monospace; overflow-y: auto; white-space: pre-wrap; flex-grow: 1; }
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    background: #1e1e1e;
+}
