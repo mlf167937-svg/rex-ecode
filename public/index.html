@@ -3,59 +3,535 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rex eCode IDE Premium</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Rex eCode v4 - AI Powered IDE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root {
+            --bg-activity: #333333;
+            --bg-sidebar: #252526;
+            --bg-editor: #1e1e1e;
+            --bg-panel: #1e1e1e;
+            --border-color: #3c3c3c;
+            --text-main: #cccccc;
+            --text-active: #ffffff;
+            --accent: #007acc;
+            --accent-hover: #005f9e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-editor);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* --- ACTIVITY BAR (KIRI MENTOK) --- */
+        .activity-bar {
+            width: 50px;
+            background-color: var(--bg-activity);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 10px;
+            border-right: 1px solid var(--border-color);
+            z-index: 10;
+        }
+
+        .activity-icon {
+            width: 100%;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 24px;
+            color: #858585;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: relative;
+        }
+
+        .activity-icon:hover { color: var(--text-active); }
+        .activity-icon.active {
+            color: var(--text-active);
+            border-left: 2px solid var(--accent);
+        }
+
+        /* --- SIDEBAR (EXPLORER & AI) --- */
+        .sidebar {
+            width: 250px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: 0.3s;
+        }
+
+        .sidebar-header {
+            padding: 10px 20px;
+            font-size: 11px;
+            font-weight: normal;
+            letter-spacing: 1px;
+            color: var(--text-main);
+            text-transform: uppercase;
+        }
+
+        /* VIEW: EXPLORER */
+        .file-list {
+            list-style: none;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            padding: 5px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .file-item:hover { background-color: #2a2d2e; color: var(--text-active); }
+        .file-item.active { background-color: #37373d; color: var(--text-active); }
+        
+        .sidebar-actions {
+            padding: 10px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 5px;
+        }
+        
+        .sidebar-actions input {
+            flex-grow: 1;
+            padding: 5px;
+            background: #3c3c3c;
+            border: 1px solid transparent;
+            color: white;
+            outline: none;
+        }
+        
+        .sidebar-actions button {
+            background: transparent;
+            color: white;
+            border: 1px solid #3c3c3c;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+        .sidebar-actions button:hover { background: #3c3c3c; }
+
+        /* VIEW: AI ASSISTANT */
+        .ai-panel {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .ai-config {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+        }
+        .ai-config input {
+            width: 100%;
+            padding: 5px;
+            margin-top: 5px;
+            background: #3c3c3c;
+            border: 1px solid transparent;
+            color: white;
+            outline: none;
+        }
+
+        .chat-history {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .msg { padding: 8px 12px; border-radius: 6px; line-height: 1.4; word-wrap: break-word;}
+        .msg.user { background-color: var(--accent); color: white; align-self: flex-end; max-width: 90%; }
+        .msg.bot { background-color: #3c3c3c; color: white; align-self: flex-start; max-width: 95%; }
+        
+        /* Render Markdown inside Bot Msg */
+        .msg.bot pre { background: #1e1e1e; padding: 5px; border-radius: 4px; overflow-x: auto; margin-top: 5px; }
+        .msg.bot code { font-family: monospace; }
+
+        .chat-input-area {
+            padding: 10px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .chat-input-area textarea {
+            width: 100%;
+            background: #3c3c3c;
+            border: 1px solid transparent;
+            color: white;
+            padding: 8px;
+            resize: none;
+            height: 60px;
+            outline: none;
+            font-size: 12px;
+        }
+        .chat-input-area button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+        .chat-input-area button:hover { background-color: var(--accent-hover); }
+
+        /* --- MAIN CONTENT (EDITOR + TERMINAL) --- */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - 300px);
+        }
+
+        .editor-tabs {
+            height: 35px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        .tab {
+            height: 100%;
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #8a8a8a;
+            background-color: var(--bg-sidebar);
+            cursor: pointer;
+            border-right: 1px solid var(--border-color);
+        }
+        .tab.active { background-color: var(--bg-editor); color: var(--accent); }
+
+        .editor-actions {
+            height: 35px;
+            background-color: var(--bg-editor);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .btn-run {
+            background-color: transparent;
+            color: #89d185;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-run:hover { color: #4af626; }
+
+        .editor-container {
+            flex-grow: 1;
+            height: 60%;
+        }
+
+        /* --- TERMINAL PANEL --- */
+        .terminal-panel {
+            height: 30%;
+            background-color: var(--bg-panel);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-tabs {
+            display: flex;
+            padding: 5px 20px;
+            gap: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .term-tab { font-size: 11px; text-transform: uppercase; color: var(--text-main); cursor: pointer; padding-bottom: 5px;}
+        .term-tab.active { color: white; border-bottom: 1px solid var(--accent); }
+
+        .terminal-body {
+            flex-grow: 1;
+            padding: 10px 20px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            color: #cccccc;
+        }
+
+        #htmlPreview { width: 100%; height: 100%; background: white; border: none; display: none;}
+    </style>
 </head>
 <body>
 
-    <div id="rotateWarning" class="rotate-warning">
-        <div class="warning-box">
-            <i class="fa-solid fa-mobile-screen-button rotate-icon"></i>
-            <h2>Mode Landscape Diperlukan</h2>
-            <p>Untuk pengalaman coding terbaik ala VS Code di HP, silakan aktifkan rotasi otomatis dan miringkan HP kamu.</p>
+    <div class="activity-bar">
+        <div class="activity-icon active" id="btn-explorer" onclick="switchSidebar('explorer')" title="Explorer">
+            <i class="fa-regular fa-copy"></i>
+        </div>
+        <div class="activity-icon" id="btn-ai" onclick="switchSidebar('ai')" title="Groq AI Assistant">
+            <i class="fa-solid fa-robot" style="color: #4af626;"></i> 
         </div>
     </div>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h3><i class="fa-solid fa-folder-tree"></i> EXPLORER</h3>
-            </div>
+    <div class="sidebar">
+        <div id="view-explorer" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="sidebar-header">Explorer</div>
             <ul id="fileList" class="file-list"></ul>
             <div class="sidebar-actions">
-                <input type="text" id="newFileName" placeholder="Nama file baru...">
-                <button onclick="createNewFile()"><i class="fa-solid fa-plus"></i> File Baru</button>
+                <input type="text" id="newFileName" placeholder="File baru...">
+                <button onclick="createNewFile()"><i class="fa-solid fa-plus"></i></button>
             </div>
-        </aside>
+        </div>
 
-        <main class="main-content">
-            <div class="editor-header">
-                <div class="active-tab">
-                    <i class="fa-solid fa-code" id="fileIcon"></i>
-                    <span id="currentFileName">main.py</span>
-                </div>
-                <div class="action-buttons">
-                    <button onclick="runCode()" class="btn-run"><i class="fa-solid fa-play"></i> Run</button>
-                    <button onclick="saveFile()" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
-                </div>
+        <div id="view-ai" class="ai-panel">
+            <div class="sidebar-header">AI Assistant (Groq)</div>
+            <div class="ai-config">
+                <label>API Key Groq:</label>
+                <input type="password" id="groqApiKey" placeholder="gsk_..." onchange="saveApiKey()">
             </div>
-
-            <div id="editorContainer" class="editor-container"></div>
-
-            <div class="terminal-panel">
-                <div class="terminal-header">
-                    <span><i class="fa-solid fa-terminal"></i> OUTPUT TERMINAL</span>
-                </div>
-                <div class="terminal-body">
-                    <pre id="terminalOutput">Klik Run untuk mengeksekusi program...</pre>
-                    <iframe id="htmlPreview" class="html-preview" style="display: none;"></iframe>
-                </div>
+            <div class="chat-history" id="chatHistory">
+                <div class="msg bot">Halo! Saya AI Assistant berbasis Groq. Masukkan API Key kamu di atas, dan tanyakan apa saja seputar kodemu!</div>
             </div>
-        </main>
+            <div class="chat-input-area">
+                <textarea id="aiInput" placeholder="Tanya sesuatu tentang kodingan ini..."></textarea>
+                <button onclick="askAI()">Kirim ke AI <i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <div class="main-content">
+        <div class="editor-tabs">
+            <div class="tab active" id="currentFileName">
+                <i class="fa-solid fa-code"></i> <span>main.py</span>
+            </div>
+        </div>
+        
+        <div class="editor-actions">
+            <button onclick="runCode()" class="btn-run"><i class="fa-solid fa-play"></i> Run Code</button>
+        </div>
+
+        <div id="editorContainer" class="editor-container"></div>
+
+        <div class="terminal-panel">
+            <div class="terminal-tabs">
+                <div class="term-tab active">Terminal</div>
+            </div>
+            <div class="terminal-body">
+                <pre id="terminalOutput" style="margin:0;">Siap dieksekusi...</pre>
+                <iframe id="htmlPreview"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let editor; 
+        
+        // --- 1. SYSTEM INITIALIZATION & FILES ---
+        let files = JSON.parse(localStorage.getItem('rexEcodeFiles_v4')) || {
+            "main.py": '# Rex eCode v4\nprint("Halo dari Python!")',
+            "index.html": '<h1>Halo HTML</h1>',
+            "script.js": 'console.log("Halo JS");'
+        };
+        let currentFile = Object.keys(files)[0] || "main.py";
+
+        // Load Groq API Key dari LocalStorage
+        document.getElementById('groqApiKey').value = localStorage.getItem('groqApiKey') || '';
+
+        // Inisialisasi Monaco Editor
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+        require(['vs/editor/editor.main'], function() {
+            editor = monaco.editor.create(document.getElementById('editorContainer'), {
+                value: files[currentFile],
+                language: getLanguageByExtension(currentFile),
+                theme: 'vs-dark',
+                fontSize: 14,
+                fontFamily: 'Consolas, monospace',
+                automaticLayout: true,
+                suggestOnTriggerCharacters: true,
+                quickSuggestions: true,
+                minimap: { enabled: false } // Dimatikan agar tidak makan tempat
+            });
+
+            // Auto-save tiap kali ngetik
+            editor.onDidChangeModelContent(() => {
+                files[currentFile] = editor.getValue();
+                localStorage.setItem('rexEcodeFiles_v4', JSON.stringify(files));
+            });
+
+            updateFileList();
+        });
+
+        // --- 2. UI LOGIC (Sidebar & Files) ---
+        function switchSidebar(view) {
+            document.getElementById('view-explorer').style.display = view === 'explorer' ? 'flex' : 'none';
+            document.getElementById('view-ai').style.display = view === 'ai' ? 'flex' : 'none';
+            
+            document.getElementById('btn-explorer').classList.toggle('active', view === 'explorer');
+            document.getElementById('btn-ai').classList.toggle('active', view === 'ai');
+        }
+
+        function getLanguageByExtension(filename) {
+            const ext = filename.split('.').pop();
+            const map = { 'py': 'python', 'js': 'javascript', 'html': 'html', 'cpp': 'cpp', 'php': 'php' };
+            return map[ext] || 'plaintext';
+        }
+
+        function updateFileList() {
+            const list = document.getElementById('fileList');
+            list.innerHTML = '';
+            Object.keys(files).forEach(name => {
+                const li = document.createElement('li');
+                li.className = `file-item ${currentFile === name ? 'active' : ''}`;
+                
+                let icon = 'fa-file-code';
+                if(name.endsWith('.py')) icon = 'fa-brands fa-python';
+                if(name.endsWith('.js')) icon = 'fa-brands fa-js';
+                if(name.endsWith('.html')) icon = 'fa-brands fa-html5';
+                
+                li.innerHTML = `<i class="${icon}"></i> ${name}`;
+                li.onclick = () => openFile(name);
+                list.appendChild(li);
+            });
+            document.querySelector('#currentFileName span').innerText = currentFile;
+        }
+
+        function openFile(name) {
+            currentFile = name;
+            updateFileList();
+            if (editor) {
+                editor.setValue(files[name]);
+                monaco.editor.setModelLanguage(editor.getModel(), getLanguageByExtension(name));
+            }
+        }
+
+        function createNewFile() {
+            const input = document.getElementById('newFileName');
+            const name = input.value.trim();
+            if (!name || files[name]) return alert("Nama tidak valid / sudah ada!");
+            files[name] = '';
+            input.value = '';
+            openFile(name);
+        }
+
+        // --- 3. COMPILER & RUNNER LOGIC ---
+        async function runCode() {
+            const code = editor.getValue();
+            const ext = currentFile.split('.').pop();
+            const terminal = document.getElementById('terminalOutput');
+            const iframe = document.getElementById('htmlPreview');
+
+            if (ext === 'html') {
+                terminal.style.display = 'none';
+                iframe.style.display = 'block';
+                iframe.srcdoc = code;
+                return;
+            }
+
+            terminal.style.display = 'block';
+            iframe.style.display = 'none';
+            terminal.innerText = "Menjalankan via Glot.io API...\n";
+
+            const langMap = {
+                'py': { url: 'https://glot.io/api/run/python/latest', name: 'main.py' },
+                'js': { url: 'https://glot.io/api/run/javascript/latest', name: 'main.js' },
+                'php': { url: 'https://glot.io/api/run/php/latest', name: 'main.php' },
+                'cpp': { url: 'https://glot.io/api/run/cpp/latest', name: 'main.cpp' }
+            };
+
+            const target = langMap[ext];
+            if (!target) return terminal.innerText += "Error: Bahasa ini tidak didukung.";
+
+            try {
+                const res = await fetch(target.url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ files: [{ name: target.name, content: code }] })
+                });
+                const data = await res.json();
+                terminal.innerText = (data.stdout + data.stderr) || "Selesai tanpa output.";
+            } catch (err) {
+                terminal.innerText += "Gagal terhubung ke Cloud Compiler.";
+            }
+        }
+
+        // --- 4. GROQ AI INTEGRATION ---
+        function saveApiKey() {
+            localStorage.setItem('groqApiKey', document.getElementById('groqApiKey').value);
+        }
+
+        async function askAI() {
+            const apiKey = document.getElementById('groqApiKey').value;
+            const input = document.getElementById('aiInput');
+            const chatBox = document.getElementById('chatHistory');
+            const userText = input.value.trim();
+
+            if (!apiKey) return alert("Masukkan API Key Groq terlebih dahulu!");
+            if (!userText) return;
+
+            // Tambahkan pesan user ke UI
+            chatBox.innerHTML += `<div class="msg user">${userText}</div>`;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Buat elemen loading untuk bot
+            const botMsgId = "bot-" + Date.now();
+            chatBox.innerHTML += `<div class="msg bot" id="${botMsgId}">Sedang berpikir...</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Dapatkan kode saat ini sebagai konteks
+            const currentCode = editor ? editor.getValue() : "";
+            const systemPrompt = `Kamu adalah AI Assistant koding ahli yang terintegrasi di dalam Web IDE ala VS Code. 
+Ini adalah kode yang sedang dikerjakan user di file ${currentFile}:\n\`\`\`\n${currentCode}\n\`\`\`\nBantu user menjawab pertanyaannya berdasarkan kode di atas. Jawab dengan ringkas dan to the point.`;
+
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${apiKey}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: "llama3-70b-8192", // Menggunakan model tercepat & terpintar Groq
+                        messages: [
+                            { role: "system", content: systemPrompt },
+                            { role: "user", content: userText }
+                        ],
+                        temperature: 0.7
+                    })
+                });
+
+                const data = await response.json();
+                if(data.error) throw new Error(data.error.message);
+                
+                const reply = data.choices[0].message.content;
+                // Parse markdown agar format kode terlihat rapi
+                document.getElementById(botMsgId).innerHTML = marked.parse(reply);
+            } catch (error) {
+                document.getElementById(botMsgId).innerText = "Error: " + error.message;
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
 </body>
 </html>
