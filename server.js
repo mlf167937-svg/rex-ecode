@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const { Groq } = require('groq-sdk'); // Sudah diperbaiki di sini!
+const { Groq } = require('groq-sdk');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,58 +11,62 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Inisialisasi Groq SDK
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// API 1: Mode Chat / Assistant
+// API 1: Chat Assistant Biasa
 app.post('/api/chat', async (req, res) => {
     try {
         const { message, codeContext } = req.body;
-        
-        let prompt = "Anda adalah AI Assistant untuk programmer. Jawab dengan singkat dan jelas.";
-        if (codeContext) {
-            prompt += `\n\nKonteks Kode Pengguna:\n${codeContext}`;
-        }
+        let prompt = "Anda adalah AI Assistant programmer ahli. Jawab menggunakan bahasa Indonesia dengan ramah, singkat, dan tepat sasaran.";
+        if (codeContext) prompt += `\n\nKonteks Kode:\n${codeContext}`;
 
-        const chatCompletion = await groq.chat.completions.create({
-            messages: [
-                { role: "system", content: prompt },
-                { role: "user", content: message }
-            ],
+        const chat = await groq.chat.completions.create({
+            messages: [{ role: "system", content: prompt }, { role: "user", content: message }],
             model: "llama3-70b-8192",
             temperature: 0.7,
         });
-
-        res.json({ reply: chatCompletion.choices[0].message.content });
+        res.json({ reply: chat.choices[0].message.content });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// API 2: Mode Compiler / Interpreter (Simulasi)
+// API 2: Mode Compiler (Run Code)
 app.post('/api/run', async (req, res) => {
     try {
         const { code, language } = req.body;
-        
-        const systemPrompt = `You are a strict ${language} interpreter/compiler. 
-        Execute the following code and return ONLY the console standard output. 
-        If there is an error, return ONLY the error message. 
-        DO NOT include markdown blocks (\`\`\`). DO NOT explain anything. DO NOT output anything else except the exact output. 
-        Begin your response with "OUTPUT:\n".`;
+        const prompt = `You are a strict ${language} compiler. Execute the code and return ONLY the standard output or error message. Do not use markdown. Start directly with the output.`;
 
-        const chatCompletion = await groq.chat.completions.create({
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: code }
-            ],
+        const chat = await groq.chat.completions.create({
+            messages: [{ role: "system", content: prompt }, { role: "user", content: code }],
             model: "llama3-8b-8192",
             temperature: 0.1,
         });
-
-        res.json({ output: chatCompletion.choices[0].message.content });
+        res.json({ output: chat.choices[0].message.content });
     } catch (error) {
-        res.status(500).json({ error: "Gagal mengeksekusi kode via AI." });
+        res.status(500).json({ error: "Gagal eksekusi kode." });
     }
 });
 
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+// API 3: Mode Edit Kode (Klik Kanan)
+app.post('/api/edit', async (req, res) => {
+    try {
+        const { code, action } = req.body;
+        let prompt = "";
+        
+        if (action === "explain") prompt = "Jelaskan cara kerja kode berikut secara singkat dan mudah dipahami.";
+        if (action === "fix") prompt = "Temukan bug di kode berikut dan berikan versi yang sudah diperbaiki beserta penjelasannya.";
+        if (action === "comment") prompt = "Tambahkan komentar yang jelas pada kode berikut agar mudah dibaca. Hanya kembalikan kodenya saja.";
+
+        const chat = await groq.chat.completions.create({
+            messages: [{ role: "system", content: prompt }, { role: "user", content: code }],
+            model: "llama3-70b-8192",
+            temperature: 0.3,
+        });
+        res.json({ reply: chat.choices[0].message.content });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.listen(PORT, () => console.log(`Server nyala di port ${PORT}`));
