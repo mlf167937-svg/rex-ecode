@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk ke RexEditorCode</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #1e1e1e; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: #252526; padding: 40px; border-radius: 8px; width: 100%; max-width: 450px; border: 1px solid #3c3c3c; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
+        h1 { margin-bottom: 5px; font-weight: 400; font-size: 24px; color: #007acc; }
+        p { color: #858585; font-size: 13px; margin-bottom: 25px; }
+        .form-group { text-align: left; margin-bottom: 15px; }
+        label { display: block; font-size: 12px; margin-bottom: 5px; color: #aaa; text-transform: uppercase; }
+        select, input { width: 100%; padding: 10px; background: #1e1e1e; border: 1px solid #3c3c3c; color: white; border-radius: 4px; box-sizing: border-box; outline: none; }
+        select:focus, input:focus { border-color: #007acc; }
+        .btn { width: 100%; padding: 12px; background: #007acc; border: none; color: white; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 14px; margin-top: 10px; transition: 0.2s; }
+        .btn:hover { background: #005f9e; }
+        .btn-offline { background: #4d4d4d; margin-top: 8px; }
+        .btn-offline:hover { background: #5a5a5a; }
+        .tutorial-box { background: #2d2d2d; padding: 12px; border-radius: 4px; margin-top: 15px; text-align: left; font-size: 12px; display: none; border-left: 3px solid #f1c40f; line-height: 1.4; }
+        .tutorial-box a { color: #f1c40f; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <i class="fas fa-cubes" style="font-size: 40px; color: #007acc; margin-bottom: 10px;"></i>
+        <h1>RexEditorCode</h1>
+        <p>Silakan pilih opsi API AI untuk memulai Workspace pintar Anda</p>
+        
+        <div class="form-group">
+            <label>Pilih Provider AI</label>
+            <select id="aiProvider" onchange="updateTutorial()">
+                <option value="groq">Groq Cloud AI (Rekomendasi - Cepat)</option>
+                <option value="openai">OpenAI (GPT-4o / GPT-3.5)</option>
+                <option value="gemini">Google Gemini AI</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="keyGroup">
+            <label>Masukkan API Key Anda</label>
+            <input type="password" id="apiKey" placeholder="Masukkan token api disini...">
+        </div>
+
+        <div id="tutorialText" class="tutorial-box"></div>
+
+        <button class="btn" onclick="loginWithAI()">Masuk dengan AI Workspace</button>
+        <button class="btn btn-offline" onclick="loginOffline()">Masuk Tanpa AI (Mode Standar)</button>
+    </div>
+
+    <script>
+        const tutorials = {
+            groq: 'Cara dapatkan API Key Groq gratis:<br>1. Masuk ke <a href="https://console.groq.com/" target="_blank">Groq Console</a><br>2. Registrasi / Login via Google.<br>3. Buka menu "API Keys" lalu klik "Create API Key".',
+            openai: 'Cara dapatkan API Key OpenAI:<br>1. Kunjungi <a href="https://platform.openai.com/" target="_blank">OpenAI Platform</a><br>2. Buka menu API Keys dan buat kunci baru.<br>3. Pastikan Anda memiliki saldo kredit aktif di akun Anda.',
+            gemini: 'Cara dapatkan API Key Gemini gratis:<br>1. Kunjungi <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a><br>2. Klik tombol "Create API Key".<br>3. Hubungkan dengan project Google Cloud Anda.'
+        };
+
+        function updateTutorial() {
+            const provider = document.getElementById('aiProvider').value;
+            const box = document.getElementById('tutorialText');
+            box.style.display = "block";
+            box.innerHTML = tutorials[provider];
+        }
+
+        function loginWithAI() {
+            const provider = document.getElementById('aiProvider').value;
+            const key = document.getElementById('apiKey').value.trim();
+            if(!key) return alert("Silakan masukkan API Key Anda terlebih dahulu!");
+
+            localStorage.setItem('rex_provider', provider);
+            localStorage.setItem('rex_key', key);
+            window.location.href = 'index.html';
+        }
+
+        function loginOffline() {
+            localStorage.setItem('rex_provider', 'none');
+            localStorage.setItem('rex_key', '');
+            window.location.href = 'index.html';
+        }
+
+        // Jalankan fungsi saat awal dibuka
+        updateTutorial();
+    </script>
+</body>
+</html>
