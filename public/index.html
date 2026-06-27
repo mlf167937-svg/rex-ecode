@@ -3,144 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RexEditorCode</title>
+    <title>RexEditorCode - VS Code Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
     <style>
-        :root { --bg-main: #1e1e1e; --bg-sidebar: #252526; --bg-activity: #333333; --bg-panel: #1e1e1e; --text-color: #cccccc; --border-color: #444444; --accent-color: #007acc; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg-main); color: var(--text-color); height: 100vh; overflow: hidden; }
+        /* Tema Warna Asli VS Code Dark+ */
+        :root { 
+            --bg-main: #1e1e1e; 
+            --bg-sidebar: #252526; 
+            --bg-activity: #333333; 
+            --bg-panel: #1e1e1e; 
+            --text-color: #cccccc; 
+            --border-color: #3c3c3c; 
+            --accent-color: #007acc;
+            --ai-color: #f1c40f;
+        }
         
-        /* 1. Layar Peringatan Landscape */
-        #landscape-blocker {
-            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #1e1e1e; color: white; z-index: 99999;
-            flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;
-        }
-        @media screen and (max-width: 768px) and (orientation: portrait) {
-            #landscape-blocker { display: flex; }
-            #app-wrapper { display: none !important; }
-        }
-
-        /* 2. Modal Setup API Key */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--bg-main); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; }
+        
+        /* 1. Modal Setup API Key */
         #api-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;
         }
         .modal-content {
             background: var(--bg-sidebar); border: 1px solid var(--border-color);
-            padding: 25px; border-radius: 8px; width: 90%; max-width: 450px; text-align: center;
+            padding: 30px; border-radius: 6px; width: 90%; max-width: 450px; text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        .modal-content h2 { margin-bottom: 10px; color: #fff; }
+        .modal-content h2 { margin-bottom: 10px; color: #fff; font-weight: 400; }
         .modal-content p { font-size: 13px; color: #aaa; margin-bottom: 20px; }
         .modal-content input {
             width: 100%; padding: 10px; background: var(--bg-main); border: 1px solid var(--border-color);
-            color: #fff; border-radius: 4px; margin-bottom: 15px; outline: none;
+            color: #fff; border-radius: 4px; margin-bottom: 15px; outline: none; font-family: monospace;
         }
         .modal-content input:focus { border-color: var(--accent-color); }
         .btn-group { display: flex; gap: 10px; justify-content: center; }
-        .btn { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn { padding: 8px 16px; border: none; border-radius: 2px; cursor: pointer; font-weight: 500; font-size: 13px; }
         .btn-primary { background: var(--accent-color); color: white; }
-        .btn-secondary { background: var(--bg-activity); color: white; }
+        .btn-primary:hover { background: #005f9e; }
+        .btn-secondary { background: #4d4d4d; color: white; }
+        .btn-secondary:hover { background: #5a5a5a; }
 
-        /* Struktur Utama */
-        #app-wrapper { display: flex; height: 100vh; width: 100vw; }
-        .activity-bar { width: 50px; background: var(--bg-activity); display: flex; flex-direction: column; align-items: center; padding: 10px 0; }
-        .icon-btn { font-size: 20px; cursor: pointer; padding: 12px; margin-bottom: 5px; border-radius: 5px; color: #858585; transition: 0.2s;}
+        /* 2. Layout Utama VS Code */
+        .activity-bar { width: 48px; background: var(--bg-activity); display: flex; flex-direction: column; align-items: center; padding: 10px 0; z-index: 10; border-right: 1px solid var(--border-color);}
+        .icon-btn { font-size: 22px; cursor: pointer; padding: 12px 0; width: 100%; text-align: center; color: #858585; transition: 0.1s; position: relative;}
         .icon-btn:hover { color: #fff; }
-        .btn-run { color: #2ecc71; }
-        .btn-settings { margin-top: auto; color: #f39c12; }
+        .icon-btn.active { color: #fff; border-left: 2px solid var(--accent-color); padding-left: -2px;}
+        .btn-ai { color: var(--ai-color); margin-top: 10px; } /* Warna kuning sesuai gambar */
+        .btn-ai:hover { color: #f39c12; text-shadow: 0 0 8px rgba(241, 196, 15, 0.4); }
+        .btn-settings { margin-top: auto; }
         
-        .sidebar { width: 220px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .sidebar-header { padding: 12px 15px; font-size: 11px; font-weight: bold; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;}
-        .sidebar-header i { cursor: pointer; font-size: 14px; }
-        .file-list { list-style: none; overflow-y: auto; flex: 1; }
-        .file-item { padding: 6px 15px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; }
-        .file-item:hover { background: var(--bg-activity); }
-        .file-item.active { background: rgba(0, 122, 204, 0.2); border-left: 2px solid var(--accent-color);}
+        .sidebar { width: 250px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .sidebar-header { padding: 10px 20px; font-size: 11px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 0.5px;}
+        .sidebar-actions { display: flex; gap: 12px; }
+        .sidebar-actions i { cursor: pointer; font-size: 14px; color: #ccc; }
+        .sidebar-actions i:hover { color: #fff; }
+        
+        .explorer-section { font-size: 11px; font-weight: bold; padding: 5px 20px; background: #2a2a2a; border-top: 1px solid var(--border-color); border-bottom: 1px solid transparent; cursor: pointer; display: flex; align-items: center; gap: 5px;}
+        .explorer-section:hover { background: #333; }
+        
+        .file-list { list-style: none; overflow-y: auto; flex: 1; padding-bottom: 10px;}
+        .file-item { padding: 4px 20px 4px 35px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 6px; color: #ccc;}
+        .file-item:hover { background: #2a2d2e; color: #fff;}
+        .file-item.active { background: #37373d; color: #fff;}
+        .file-item i { font-size: 14px; width: 16px; text-align: center;}
+        
+        /* Ikon File Custom */
+        .fa-html5 { color: #e34c26; }
+        .fa-python { color: #3776ab; }
+        .fa-js { color: #f7df1e; }
+        .fa-file-code { color: #519aba; }
 
-        .main-area { flex: 1; display: flex; flex-direction: column; position: relative;}
-        .tabs-container { height: 35px; background: var(--bg-sidebar); display: flex; border-bottom: 1px solid var(--border-color); overflow-x: auto;}
-        .tab { padding: 0 15px; background: var(--bg-panel); border-right: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; border-top: 2px solid transparent;}
-        .tab.active { border-top-color: var(--accent-color); background: var(--bg-main); color: #fff; }
+        .main-area { flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0;}
+        .tabs-container { height: 35px; background: var(--bg-main); display: flex; overflow-x: auto; scrollbar-width: none;}
+        .tabs-container::-webkit-scrollbar { display: none; }
+        .tab { padding: 0 15px; background: #2d2d2d; border-right: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; min-width: 120px; color: #969696;}
+        .tab.active { background: var(--bg-main); color: #fff; border-top: 1px solid var(--accent-color); }
+        .tab-close { font-size: 10px; margin-left: auto; border-radius: 3px; padding: 2px; }
+        .tab-close:hover { background: rgba(255,255,255,0.1); }
         
-        #editor-container { flex: 1; width: 100%; height: 100%; }
+        /* Editor & Terminal */
+        .editor-wrapper { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+        #editor-container { flex: 1; width: 100%; }
         #html-preview { display: none; flex: 1; background: #fff; border: none; width: 100%; }
         
         .bottom-panel { height: 200px; background: var(--bg-panel); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .panel-header { display: flex; padding: 0 15px; border-bottom: 1px solid var(--border-color); font-size: 11px; gap: 20px;}
-        .panel-tab { cursor: pointer; padding: 8px 0; color: #858585; text-transform: uppercase;}
+        .panel-header { display: flex; padding: 0 20px; font-size: 11px; gap: 20px; }
+        .panel-tab { cursor: pointer; padding: 10px 0; color: #858585; text-transform: uppercase; font-weight: 500; border-bottom: 1px solid transparent;}
         .panel-tab.active { color: #fff; border-bottom: 1px solid var(--accent-color); }
-        .panel-content { flex: 1; padding: 10px 15px; font-family: 'Courier New', monospace; font-size: 13px; overflow-y: auto; white-space: pre-wrap; color: #d4d4d4;}
+        .panel-actions { margin-left: auto; display: flex; align-items: center; gap: 15px; }
+        .panel-actions i { cursor: pointer; color: #858585; }
+        .panel-actions i:hover { color: #fff; }
+        .panel-content { flex: 1; padding: 10px 20px; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; overflow-y: auto; white-space: pre-wrap; color: #d4d4d4;}
 
-        .ai-sidebar { width: 320px; background: var(--bg-sidebar); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        /* AI Sidebar Tersembunyi */
+        .ai-sidebar { width: 300px; background: var(--bg-sidebar); border-left: 1px solid var(--border-color); display: none; flex-direction: column; }
+        .ai-sidebar.visible { display: flex; }
+        .ai-header { padding: 10px 15px; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; text-transform: uppercase;}
         .ai-chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
-        .chat-bubble { padding: 10px 12px; border-radius: 6px; max-width: 90%; line-height: 1.4; }
+        .chat-bubble { padding: 10px 12px; border-radius: 6px; max-width: 95%; line-height: 1.4; word-wrap: break-word;}
         .chat-user { background: var(--accent-color); color: #fff; align-self: flex-end; }
-        .chat-ai { background: var(--bg-activity); color: var(--text-color); align-self: flex-start; border: 1px solid var(--border-color);}
-        .ai-input-area { padding: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 8px;}
-        .ai-input-area input { flex: 1; padding: 10px; background: var(--bg-main); border: 1px solid var(--border-color); color: #fff; border-radius: 4px; outline: none; }
-        .ai-input-area button { padding: 0 15px; background: var(--accent-color); border: none; color: white; border-radius: 4px; cursor: pointer;}
+        .chat-ai { background: var(--bg-main); color: var(--text-color); align-self: flex-start; border: 1px solid var(--border-color); font-family: 'Consolas', monospace; font-size: 12px;}
+        .ai-input-area { padding: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; background: var(--bg-main);}
+        .ai-input-area input { flex: 1; padding: 8px 10px; background: var(--bg-sidebar); border: 1px solid var(--border-color); color: #fff; border-radius: 2px; outline: none; }
+        .ai-input-area input:focus { border-color: var(--accent-color); }
+        .ai-input-area button { padding: 0 12px; background: var(--accent-color); border: none; color: white; border-radius: 2px; cursor: pointer;}
+        
+        /* Hidden file input */
+        #file-upload-input { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="landscape-blocker">
-        <i class="fas fa-sync-alt" style="font-size: 50px; margin-bottom: 20px; color: var(--accent-color);"></i>
-        <h2>Putar Perangkat Anda</h2>
-        <p style="margin-top: 10px; color: #aaa;">RexEditorCode membutuhkan mode <b>Landscape</b> (mendatar) untuk pengalaman coding terbaik di perangkat mobile.</p>
-    </div>
-
+    <!-- Modal API Key -->
     <div id="api-modal">
         <div class="modal-content">
             <h2><i class="fas fa-code"></i> RexEditorCode</h2>
-            <p>Masukkan API Key Groq Anda untuk mengaktifkan fitur AI Assistant dan Eksekusi Kode Python/JS.</p>
+            <p>Masukkan API Key Groq Anda untuk mengaktifkan fitur Eksekusi AI dan Asisten. Bisa dilewati jika hanya ingin memakai editor standar.</p>
             <input type="password" id="api-input-field" placeholder="gsk_xxxxxxxxxxxxxxxxxxxx">
             <div class="btn-group">
-                <button class="btn btn-primary" onclick="saveKey()">Simpan & Gunakan AI</button>
-                <button class="btn btn-secondary" onclick="skipKey()">Skip (Tanpa AI)</button>
+                <button class="btn btn-primary" onclick="saveKey()">Simpan & Masuk</button>
+                <button class="btn btn-secondary" onclick="skipKey()">Masuk Tanpa AI</button>
             </div>
-            <p style="font-size: 11px; margin-top: 15px; color: #888;">Kunci hanya disimpan di browser Anda (Local Storage), 100% aman.</p>
         </div>
     </div>
 
-    <div id="app-wrapper">
-        <div class="activity-bar">
-            <i class="fas fa-file-code icon-btn active" title="Explorer"></i>
-            <i class="fas fa-play icon-btn btn-run" title="Run Code" onclick="runCode()"></i>
-            <i class="fas fa-key icon-btn btn-settings" title="Ganti API Key" onclick="showApiModal()"></i>
+    <!-- Hidden input untuk Upload -->
+    <input type="file" id="file-upload-input" onchange="handleFileUpload(event)">
+
+    <div class="activity-bar">
+        <i class="far fa-copy icon-btn active" title="Explorer"></i>
+        <i class="fas fa-search icon-btn" title="Search"></i>
+        <i class="fas fa-play icon-btn" style="color: #89d185;" title="Run Code" onclick="runCode()"></i>
+        <i class="fas fa-robot icon-btn btn-ai" title="Buka AI Assistant (Groq)" onclick="toggleAI()"></i>
+        <i class="fas fa-cog icon-btn btn-settings" title="Settings API Key" onclick="showApiModal()"></i>
+    </div>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span>Explorer</span>
+            <i class="fas fa-ellipsis-h"></i>
+        </div>
+        <div class="explorer-section">
+            <i class="fas fa-chevron-down"></i> REX_WORKSPACE
+        </div>
+        
+        <div style="padding: 10px 20px; display: flex; gap: 10px; justify-content: space-between;">
+            <button class="btn btn-secondary" style="flex:1; padding:4px; font-size:11px;" onclick="createNewFile()"><i class="fas fa-plus"></i> File</button>
+            <button class="btn btn-secondary" style="flex:1; padding:4px; font-size:11px;" onclick="document.getElementById('file-upload-input').click()"><i class="fas fa-upload"></i> Upload</button>
         </div>
 
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <span>EXPLORER</span>
-                <i class="fas fa-plus" title="File Baru" onclick="createNewFile()"></i>
-            </div>
-            <ul class="file-list" id="fileList"></ul>
-        </div>
+        <ul class="file-list" id="fileList"></ul>
+    </div>
 
-        <div class="main-area">
-            <div class="tabs-container" id="tabs"></div>
+    <div class="main-area">
+        <div class="tabs-container" id="tabs"></div>
+        
+        <div class="editor-wrapper">
             <div id="editor-container"></div>
             <iframe id="html-preview"></iframe>
-            
-            <div class="bottom-panel">
-                <div class="panel-header">
-                    <div class="panel-tab active">TERMINAL / OUTPUT</div>
-                </div>
-                <div class="panel-content" id="terminal">Sistem siap...</div>
-            </div>
         </div>
+        
+        <div class="bottom-panel">
+            <div class="panel-header">
+                <div class="panel-tab">PROBLEMS</div>
+                <div class="panel-tab active">TERMINAL</div>
+                <div class="panel-actions">
+                    <i class="fas fa-download" title="Download File Saat Ini" onclick="downloadFile()"></i>
+                    <i class="fas fa-trash" title="Clear Terminal" onclick="document.getElementById('terminal').innerHTML = ''"></i>
+                    <i class="fas fa-chevron-up"></i>
+                    <i class="fas fa-times"></i>
+                </div>
+            </div>
+            <div class="panel-content" id="terminal">PS C:\RexEditorCode> Sistem siap...</div>
+        </div>
+    </div>
 
-        <div class="ai-sidebar" id="aiSidebar">
-            <div class="sidebar-header" style="font-size: 13px;">✨ GROQ AI ASSISTANT</div>
-            <div class="ai-chat-area" id="chatArea">
-                <div class="chat-bubble chat-ai">Halo! Saya siap membantu coding Anda. Blok kode lalu klik kanan untuk opsi ajaib!</div>
-            </div>
-            <div class="ai-input-area">
-                <input type="text" id="aiInput" placeholder="Tanya tentang kodemu..." onkeypress="if(event.key === 'Enter') sendChat()">
-                <button onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
-            </div>
+    <!-- AI Sidebar (Groq AI) -->
+    <div class="ai-sidebar" id="aiSidebar">
+        <div class="ai-header">
+            <span>✨ Rex AI Chat</span>
+            <i class="fas fa-times" style="cursor:pointer;" onclick="toggleAI()"></i>
+        </div>
+        <div class="ai-chat-area" id="chatArea">
+            <div class="chat-bubble chat-ai">Halo! Aku terhubung dengan Groq API. Anda bisa bertanya soal kode, atau klik tombol <b>Run</b> di kiri untuk mengeksekusi kode Python/JS.</div>
+        </div>
+        <div class="ai-input-area">
+            <input type="text" id="aiInput" placeholder="Ketik pesan..." onkeypress="if(event.key === 'Enter') sendChat()">
+            <button onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -163,48 +215,48 @@
                 userGroqKey = key;
                 localStorage.setItem('rex_groq_key', key);
                 document.getElementById('api-modal').style.display = 'none';
-                document.getElementById('terminal').innerHTML = "<span style='color:#2ecc71;'>[Sistem] AI Assistant berhasil diaktifkan.</span>";
+                logTerminal("Koneksi API Groq berhasil disimpan.");
             }
         }
 
         function skipKey() {
             document.getElementById('api-modal').style.display = 'none';
-            document.getElementById('terminal').innerHTML = "<span style='color:#f39c12;'>[Sistem] AI dinonaktifkan. Mode HTML Only aktif.</span>";
+            logTerminal("Mode Offline. AI dan Eksekusi Python/JS dinonaktifkan.", "#e67e22");
         }
 
-        // --- MANAJEMEN EDITOR & FILE ---
+        // --- MANAJEMEN FILE & EDITOR ---
         let files = {
-            "index.html": { lang: "html", code: "<h1>RexEditorCode</h1>\n<p>Coba fitur jalankan kode di sini!</p>" },
-            "main.py": { lang: "python", code: "print('Halo dari RexEditorCode!')" },
+            "index.html": { lang: "html", code: "<!DOCTYPE html>\n<html>\n<head>\n  <title>Rex Web</title>\n</head>\n<body>\n  <h1>Halo Dunia</h1>\n</body>\n</html>" },
+            "A-2.py": { lang: "python", code: "print('Ini file Python seperti di gambar!')\n\n#roman numeral converter\n#Coba jalankan via tombol Play di kiri!" },
         };
-        let activeFile = "main.py";
+        let activeFile = "A-2.py";
         let editor;
+
+        function getFileIcon(filename) {
+            if (filename.endsWith('.html')) return 'fab fa-html5';
+            if (filename.endsWith('.py')) return 'fab fa-python';
+            if (filename.endsWith('.js')) return 'fab fa-js';
+            if (filename.endsWith('.css')) return 'fab fa-css3-alt';
+            return 'far fa-file-code';
+        }
+
+        function getLanguage(filename) {
+            if (filename.endsWith('.js')) return "javascript";
+            if (filename.endsWith('.py')) return "python";
+            if (filename.endsWith('.css')) return "css";
+            if (filename.endsWith('.html')) return "html";
+            return "plaintext";
+        }
 
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' }});
         require(['vs/editor/editor.main'], function() {
             editor = monaco.editor.create(document.getElementById('editor-container'), {
                 value: files[activeFile].code, language: files[activeFile].lang,
-                theme: 'vs-dark', automaticLayout: true, fontSize: 14
+                theme: 'vs-dark', automaticLayout: true, fontSize: 13, fontFamily: "'Consolas', 'Courier New', monospace",
+                minimap: { enabled: false }
             });
 
             editor.onDidChangeModelContent(() => { files[activeFile].code = editor.getValue(); });
-
-            const actions = [
-                { id: 'ai-explain', label: '✨ AI: Jelaskan Kode', action: 'explain' },
-                { id: 'ai-fix', label: '🐛 AI: Fix Bug', action: 'fix' },
-                { id: 'ai-comment', label: '📝 AI: Beri Komentar', action: 'comment' }
-            ];
-
-            actions.forEach((act, index) => {
-                editor.addAction({
-                    id: act.id, label: act.label, contextMenuGroupId: 'navigation', contextMenuOrder: index,
-                    run: function(ed) {
-                        const code = ed.getModel().getValueInRange(ed.getSelection());
-                        if(code) processAIExtra(code, act.action);
-                        else alert("Blok (Highlight) kodenya dulu sebelum klik kanan!");
-                    }
-                });
-            });
             renderUI();
         });
 
@@ -214,13 +266,17 @@
             list.innerHTML = ""; tabs.innerHTML = "";
             
             Object.keys(files).forEach(fileName => {
+                // Explorer Item
                 const li = document.createElement("li");
                 li.className = `file-item ${fileName === activeFile ? 'active' : ''}`;
-                li.innerHTML = `<i class="far fa-file-code"></i> ${fileName}`;
+                li.innerHTML = `<i class="${getFileIcon(fileName)}"></i> ${fileName}`;
                 li.onclick = () => openFile(fileName);
                 list.appendChild(li);
 
-                if(fileName === activeFile) tabs.innerHTML = `<div class="tab active"><i class="far fa-file-code"></i> ${fileName}</div>`;
+                // Tab Item
+                if(fileName === activeFile) {
+                    tabs.innerHTML = `<div class="tab active"><i class="${getFileIcon(fileName)}"></i> ${fileName} <i class="fas fa-times tab-close"></i></div>`;
+                }
             });
         }
 
@@ -241,51 +297,91 @@
         }
 
         function createNewFile() {
-            const fileName = prompt("Masukkan nama file (contoh: script.js):");
+            const fileName = prompt("Masukkan nama file beserta ekstensi (contoh: main.py):");
             if(fileName && !files[fileName]) {
-                let lang = "plaintext";
-                if(fileName.endsWith(".js")) lang = "javascript";
-                if(fileName.endsWith(".py")) lang = "python";
-                if(fileName.endsWith(".html")) lang = "html";
-                files[fileName] = { lang: lang, code: "" };
+                files[fileName] = { lang: getLanguage(fileName), code: "" };
                 openFile(fileName);
             }
         }
 
-        // --- PANGGILAN API DENGAN HEADER KHUSUS ---
-        function getHeaders() {
-            return { 'Content-Type': 'application/json', 'x-groq-key': userGroqKey };
+        // --- UPLOAD & DOWNLOAD FILE ---
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const fileName = file.name;
+                files[fileName] = { lang: getLanguage(fileName), code: content };
+                openFile(fileName);
+                logTerminal(`File ${fileName} berhasil diunggah.`);
+            };
+            reader.readAsText(file);
+            event.target.value = ""; // Reset input
+        }
+
+        function downloadFile() {
+            if (!files[activeFile]) return;
+            const code = editor.getValue();
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = activeFile;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            logTerminal(`File ${activeFile} berhasil diunduh.`);
+        }
+
+        // --- SISTEM AI & EKSEKUSI ---
+        function getHeaders() { return { 'Content-Type': 'application/json', 'x-groq-key': userGroqKey }; }
+
+        function logTerminal(msg, color = "#d4d4d4") {
+            const term = document.getElementById("terminal");
+            term.innerHTML += `<br><span style="color:${color};">PS C:\\RexEditorCode> ${msg}</span>`;
+            term.scrollTop = term.scrollHeight;
         }
 
         async function runCode() {
             const code = editor.getValue();
-            const terminal = document.getElementById("terminal");
             
             if(activeFile.endsWith(".html")) {
-                terminal.innerHTML = "Memuat pratinjau HTML...";
+                logTerminal("Memuat pratinjau HTML secara lokal...");
                 document.getElementById('editor-container').style.display = 'none';
                 const iframe = document.getElementById('html-preview');
                 iframe.style.display = 'block';
                 iframe.srcdoc = code;
-            } else {
-                if(!userGroqKey) {
-                    terminal.innerHTML = "<span style='color:#e74c3c;'>Gagal: API Key belum dimasukkan. Klik ikon Kunci di kiri bawah.</span>";
-                    return;
-                }
-                terminal.innerHTML = `<span style="color: #f1c40f;">Menjalankan ${activeFile}...</span>\n`;
-                try {
-                    const res = await fetch('/api/run', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ code: code, language: files[activeFile].lang }) });
-                    const data = await res.json();
-                    if(data.error) throw new Error(data.error);
-                    terminal.innerHTML += `<span style="color:#2ecc71;">${data.output}</span>`;
-                } catch (e) {
-                    terminal.innerHTML += `<span style="color:#e74c3c;">${e.message}</span>`;
-                }
+                return;
+            } 
+            
+            if(!userGroqKey) {
+                logTerminal("Gagal: API Key belum dimasukkan. Klik ikon gerigi di kiri bawah.", "#f14c4c");
+                return;
+            }
+
+            logTerminal(`Menjalankan ${activeFile}...`, "#f1c40f");
+            try {
+                const res = await fetch('/api/run', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ code: code, language: files[activeFile].lang }) });
+                const data = await res.json();
+                if(data.error) throw new Error(data.error);
+                document.getElementById("terminal").innerHTML += `<br><span style="color:#b5cea8;">${data.output}</span>`;
+                document.getElementById("terminal").scrollTop = document.getElementById("terminal").scrollHeight;
+            } catch (e) {
+                logTerminal(e.message, "#f14c4c");
             }
         }
 
+        // --- AI CHAT SIDEBAR ---
+        function toggleAI() {
+            const sidebar = document.getElementById('aiSidebar');
+            sidebar.classList.toggle('visible');
+        }
+
         async function sendChat() {
-            if(!userGroqKey) return alert("Masukkan API Key terlebih dahulu melalui ikon kunci di menu kiri.");
+            if(!userGroqKey) return alert("Masukkan API Key melalui menu settings (ikon gerigi).");
             const input = document.getElementById('aiInput');
             const message = input.value.trim();
             if(!message) return;
@@ -295,38 +391,20 @@
             input.value = '';
             
             const loadingId = "load-" + Date.now();
-            chatArea.innerHTML += `<div class="chat-bubble chat-ai" id="${loadingId}">...</div>`;
+            chatArea.innerHTML += `<div class="chat-bubble chat-ai" id="${loadingId}">Berpikir...</div>`;
             chatArea.scrollTop = chatArea.scrollHeight;
 
             try {
                 const res = await fetch('/api/chat', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ message, codeContext: editor.getValue() }) });
                 const data = await res.json();
                 if(data.error) throw new Error(data.error);
-                document.getElementById(loadingId).innerText = data.reply;
+                
+                // Format balasan AI agar rapi (enter ke <br>)
+                let formattedReply = data.reply.replace(/\n/g, '<br>');
+                document.getElementById(loadingId).innerHTML = formattedReply;
                 chatArea.scrollTop = chatArea.scrollHeight;
             } catch (e) {
-                document.getElementById(loadingId).innerText = e.message;
-            }
-        }
-
-        async function processAIExtra(code, action) {
-            if(!userGroqKey) return alert("Fitur AI membutuhkan API Key.");
-            const chatArea = document.getElementById('chatArea');
-            let actionText = action === 'explain' ? 'Tolong jelaskan kode ini' : (action === 'fix' ? 'Tolong perbaiki bug kode ini' : 'Beri komentar pada kode ini');
-            
-            chatArea.innerHTML += `<div class="chat-bubble chat-user">${actionText}</div>`;
-            const loadingId = "load-" + Date.now();
-            chatArea.innerHTML += `<div class="chat-bubble chat-ai" id="${loadingId}">Menganalisa...</div>`;
-            chatArea.scrollTop = chatArea.scrollHeight;
-
-            try {
-                const res = await fetch('/api/edit', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ code, action }) });
-                const data = await res.json();
-                if(data.error) throw new Error(data.error);
-                document.getElementById(loadingId).innerHTML = data.reply.replace(/\n/g, '<br>');
-                chatArea.scrollTop = chatArea.scrollHeight;
-            } catch (e) {
-                document.getElementById(loadingId).innerText = e.message;
+                document.getElementById(loadingId).innerText = "Error: " + e.message;
             }
         }
     </script>
