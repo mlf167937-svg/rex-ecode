@@ -3,107 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Code Editor & AI</title>
+    <title>Pro Code Editor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
     <style>
-        :root {
-            --bg-main: #1e1e1e; --bg-sidebar: #252526; --bg-activity: #333333;
-            --bg-panel: #1e1e1e; --text-color: #cccccc; --border-color: #444444;
-            --accent-color: #007acc;
-        }
+        :root { --bg-main: #1e1e1e; --bg-sidebar: #252526; --bg-activity: #333333; --bg-panel: #1e1e1e; --text-color: #cccccc; --border-color: #444444; --accent-color: #007acc; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg-main); color: var(--text-color); display: flex; height: 100vh; overflow: hidden; }
         
-        .activity-bar { width: 50px; background: var(--bg-activity); display: flex; flex-direction: column; align-items: center; padding: 10px 0; z-index: 10; justify-content: space-between;}
-        .icon-btn { font-size: 20px; cursor: pointer; padding: 10px; margin-bottom: 10px; border-radius: 5px; color: #858585; transition: 0.2s;}
-        .icon-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .btn-ai { color: #2ecc71; } /* Hijau AI */
-        .btn-run { color: #e74c3c; } /* Merah Run */
-
-        .sidebar { width: 200px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .sidebar-header { padding: 10px; font-size: 12px; font-weight: bold; border-bottom: 1px solid var(--border-color);}
+        /* Layouts */
+        .activity-bar { width: 50px; background: var(--bg-activity); display: flex; flex-direction: column; align-items: center; padding: 10px 0; z-index: 10; }
+        .icon-btn { font-size: 20px; cursor: pointer; padding: 12px; margin-bottom: 5px; border-radius: 5px; color: #858585; transition: 0.2s;}
+        .icon-btn:hover { color: #fff; }
+        .icon-btn.active { border-left: 2px solid var(--accent-color); color: #fff; }
+        .btn-run { color: #2ecc71; }
+        
+        .sidebar { width: 220px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .sidebar-header { padding: 12px 15px; font-size: 11px; font-weight: bold; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;}
+        .sidebar-header i { cursor: pointer; font-size: 14px; }
+        .sidebar-header i:hover { color: #fff; }
         .file-list { list-style: none; overflow-y: auto; flex: 1; }
-        .file-item { padding: 8px 15px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; }
-        .file-item:hover, .file-item.active { background: rgba(0, 122, 204, 0.2); }
+        .file-item { padding: 6px 15px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        .file-item:hover { background: var(--bg-activity); }
+        .file-item.active { background: rgba(0, 122, 204, 0.2); border-left: 2px solid var(--accent-color);}
 
         .main-area { flex: 1; display: flex; flex-direction: column; position: relative;}
-        .tabs-container { height: 35px; background: var(--bg-sidebar); display: flex; border-bottom: 1px solid var(--border-color); }
-        .tab { padding: 0 15px; background: var(--bg-panel); border-right: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; border-top: 2px solid transparent;}
-        .tab.active { border-top-color: var(--accent-color); background: var(--bg-main); }
         
+        /* Tabs */
+        .tabs-container { height: 35px; background: var(--bg-sidebar); display: flex; border-bottom: 1px solid var(--border-color); overflow-x: auto;}
+        .tab { padding: 0 15px; background: var(--bg-panel); border-right: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; border-top: 2px solid transparent;}
+        .tab.active { border-top-color: var(--accent-color); background: var(--bg-main); color: #fff; }
+        
+        /* Editor & Output */
         #editor-container { flex: 1; width: 100%; height: 100%; }
-        
-        /* Iframe untuk Run HTML */
         #html-preview { display: none; flex: 1; background: #fff; border: none; width: 100%; }
-
+        
         .bottom-panel { height: 200px; background: var(--bg-panel); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .panel-header { display: flex; padding: 5px 15px; border-bottom: 1px solid var(--border-color); font-size: 12px; gap: 20px;}
-        .panel-tab { cursor: pointer; padding: 5px 0; color: #858585;}
+        .panel-header { display: flex; padding: 0 15px; border-bottom: 1px solid var(--border-color); font-size: 11px; gap: 20px;}
+        .panel-tab { cursor: pointer; padding: 8px 0; color: #858585; text-transform: uppercase;}
         .panel-tab.active { color: #fff; border-bottom: 1px solid var(--accent-color); }
-        .panel-content { flex: 1; padding: 10px; font-family: 'Courier New', monospace; font-size: 13px; overflow-y: auto; white-space: pre-wrap;}
+        .panel-content { flex: 1; padding: 10px 15px; font-family: 'Courier New', monospace; font-size: 13px; overflow-y: auto; white-space: pre-wrap; color: #d4d4d4;}
 
-        /* AI Sidebar */
-        .ai-sidebar { width: 300px; background: var(--bg-sidebar); border-left: 1px solid var(--border-color); display: none; flex-direction: column; }
-        .ai-chat-area { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
-        .chat-bubble { padding: 8px 12px; border-radius: 6px; max-width: 90%; }
+        /* AI Chat */
+        .ai-sidebar { width: 320px; background: var(--bg-sidebar); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .ai-chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
+        .chat-bubble { padding: 10px 12px; border-radius: 6px; max-width: 90%; line-height: 1.4; }
         .chat-user { background: var(--accent-color); color: #fff; align-self: flex-end; }
-        .chat-ai { background: var(--bg-activity); color: var(--text-color); align-self: flex-start; }
-        .ai-input-area { padding: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 5px;}
-        .ai-input-area input { flex: 1; padding: 8px; background: var(--bg-main); border: 1px solid var(--border-color); color: #fff; border-radius: 4px; outline: none; }
-        .ai-input-area button { padding: 8px 12px; background: var(--accent-color); border: none; color: white; border-radius: 4px; cursor: pointer; }
+        .chat-ai { background: var(--bg-activity); color: var(--text-color); align-self: flex-start; border: 1px solid var(--border-color);}
+        .ai-input-area { padding: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 8px;}
+        .ai-input-area input { flex: 1; padding: 10px; background: var(--bg-main); border: 1px solid var(--border-color); color: #fff; border-radius: 4px; outline: none; }
+        .ai-input-area input:focus { border-color: var(--accent-color); }
+        .ai-input-area button { padding: 0 15px; background: var(--accent-color); border: none; color: white; border-radius: 4px; cursor: pointer; transition: 0.2s;}
+        .ai-input-area button:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
 
     <div class="activity-bar">
-        <div>
-            <i class="fas fa-file-code icon-btn" title="Explorer"></i>
-            <i class="fas fa-play icon-btn btn-run" title="Run Code" onclick="runCode()"></i>
-            <i class="fas fa-robot icon-btn btn-ai" title="AI Assistant" onclick="toggleAI()"></i>
-        </div>
+        <i class="fas fa-file-code icon-btn active" title="Explorer"></i>
+        <i class="fas fa-search icon-btn" title="Search"></i>
+        <i class="fas fa-play icon-btn btn-run" title="Run Code" onclick="runCode()"></i>
     </div>
 
     <div class="sidebar">
-        <div class="sidebar-header">EXPLORER</div>
+        <div class="sidebar-header">
+            <span>EXPLORER</span>
+            <i class="fas fa-plus" title="File Baru" onclick="createNewFile()"></i>
+        </div>
         <ul class="file-list" id="fileList"></ul>
     </div>
 
     <div class="main-area">
         <div class="tabs-container" id="tabs"></div>
-        
         <div id="editor-container"></div>
         <iframe id="html-preview"></iframe>
-
+        
         <div class="bottom-panel">
             <div class="panel-header">
-                <div class="panel-tab active">TERMINAL / OUTPUT</div>
+                <div class="panel-tab active">TERMINAL</div>
             </div>
-            <div class="panel-content" id="terminal">Menunggu eksekusi...</div>
+            <div class="panel-content" id="terminal">Menunggu eksekusi kode...</div>
         </div>
     </div>
 
     <div class="ai-sidebar" id="aiSidebar">
-        <div class="sidebar-header">GROQ AI ASSISTANT</div>
+        <div class="sidebar-header" style="font-size: 13px;">✨ GROQ AI ASSISTANT</div>
         <div class="ai-chat-area" id="chatArea">
-            <div class="chat-bubble chat-ai">Halo! Ada yang bisa saya bantu dengan kodinganmu hari ini?</div>
+            <div class="chat-bubble chat-ai">Halo! Coba blok kode kamu di text editor lalu klik kanan, ada fitur ajaib di sana!</div>
         </div>
         <div class="ai-input-area">
-            <input type="text" id="aiInput" placeholder="Tanya AI..." onkeypress="if(event.key === 'Enter') sendChat()">
+            <input type="text" id="aiInput" placeholder="Tanya tentang kodemu..." onkeypress="if(event.key === 'Enter') sendChat()">
             <button onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
     <script>
+        // Database File Sementara
         let files = {
-            "index.html": { lang: "html", code: "<h1>Hello World!</h1>\n<p>Warna syntax sudah aktif!</p>" },
-            "main.py": { lang: "python", code: "print('Hello dari Python!')\n\nif True:\n    print('Groq AI jalan mantap!')" },
-            "app.js": { lang: "javascript", code: "console.log('JavaScript Ready');" }
+            "index.html": { lang: "html", code: "<h1>Halo Dunia</h1>\n<style>\n  h1 { color: #3498db; font-family: sans-serif; }\n</style>" },
+            "main.py": { lang: "python", code: "def salam(nama):\n    print(f'Halo {nama}, semangat ngoding!')\n\nsalam('Programmer')" },
         };
         let activeFile = "main.py";
         let editor;
 
-        // Inisialisasi Monaco Editor
+        // Load Monaco
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' }});
         require(['vs/editor/editor.main'], function() {
             editor = monaco.editor.create(document.getElementById('editor-container'), {
@@ -111,58 +114,61 @@
                 language: files[activeFile].lang,
                 theme: 'vs-dark',
                 automaticLayout: true,
-                fontSize: 14
+                fontSize: 14,
+                fontFamily: "'Fira Code', 'Courier New', monospace"
             });
 
-            // Menyimpan kode saat diedit
             editor.onDidChangeModelContent(() => {
                 files[activeFile].code = editor.getValue();
             });
 
-            // Menambahkan Action (Klik Kanan -> Ask AI)
-            editor.addAction({
-                id: 'ask-ai-action',
-                label: '✨ Tanya AI tentang kode ini...',
-                contextMenuGroupId: 'navigation',
-                contextMenuOrder: 1.5,
-                run: function(ed) {
-                    const selection = ed.getSelection();
-                    const selectedText = ed.getModel().getValueInRange(selection);
-                    if(selectedText) {
-                        toggleAI(true);
-                        document.getElementById('aiInput').value = `Tolong jelaskan kode ini:\n\n${selectedText}`;
+            // --- FITUR KLIK KANAN AI ---
+            const actions = [
+                { id: 'ai-explain', label: '✨ Tanya AI: Jelaskan Kode', action: 'explain' },
+                { id: 'ai-fix', label: '🐛 Tanya AI: Fix Bug', action: 'fix' },
+                { id: 'ai-comment', label: '📝 Tanya AI: Beri Komentar', action: 'comment' }
+            ];
+
+            actions.forEach((act, index) => {
+                editor.addAction({
+                    id: act.id, label: act.label, contextMenuGroupId: 'navigation', contextMenuOrder: index,
+                    run: function(ed) {
+                        const code = ed.getModel().getValueInRange(ed.getSelection());
+                        if(code) processAIExtra(code, act.action);
+                        else alert("Blok (Highlight) kodenya dulu sebelum klik kanan!");
                     }
-                }
+                });
             });
 
-            renderSidebar();
+            renderUI();
         });
 
-        function renderSidebar() {
+        // Manajemen UI (Sidebar & Tabs)
+        function renderUI() {
             const list = document.getElementById("fileList");
             const tabs = document.getElementById("tabs");
             list.innerHTML = ""; tabs.innerHTML = "";
             
             Object.keys(files).forEach(fileName => {
-                // Sidebar items
+                // Render Explorer
                 const li = document.createElement("li");
                 li.className = `file-item ${fileName === activeFile ? 'active' : ''}`;
                 li.innerHTML = `<i class="far fa-file-code"></i> ${fileName}`;
                 li.onclick = () => openFile(fileName);
                 list.appendChild(li);
 
-                // Tabs
+                // Render Tabs
                 if(fileName === activeFile) {
                     tabs.innerHTML = `<div class="tab active"><i class="far fa-file-code"></i> ${fileName}</div>`;
                 }
             });
         }
 
+        // Pindah File
         function openFile(fileName) {
             activeFile = fileName;
             const fileData = files[fileName];
             
-            // Atur mode Preview HTML vs Editor biasa
             if(fileName.endsWith(".html")) {
                 document.getElementById('editor-container').style.display = 'block';
                 document.getElementById('html-preview').style.display = 'none';
@@ -173,24 +179,37 @@
 
             monaco.editor.setModelLanguage(editor.getModel(), fileData.lang);
             editor.setValue(fileData.code);
-            renderSidebar();
+            renderUI();
         }
 
-        // FUNGSI 1: RUN CODE
+        // Bikin File Baru
+        function createNewFile() {
+            const fileName = prompt("Masukkan nama file (contoh: script.js, style.css):");
+            if(fileName && !files[fileName]) {
+                let lang = "plaintext";
+                if(fileName.endsWith(".js")) lang = "javascript";
+                if(fileName.endsWith(".py")) lang = "python";
+                if(fileName.endsWith(".css")) lang = "css";
+                if(fileName.endsWith(".html")) lang = "html";
+                
+                files[fileName] = { lang: lang, code: "" };
+                openFile(fileName);
+            }
+        }
+
+        // Jalankan Kode (Run)
         async function runCode() {
             const code = editor.getValue();
             const terminal = document.getElementById("terminal");
             
             if(activeFile.endsWith(".html")) {
-                // Run HTML langsung di Iframe
-                terminal.innerHTML = "Menjalankan preview HTML...";
+                terminal.innerHTML = "Memuat pratinjau HTML...";
                 document.getElementById('editor-container').style.display = 'none';
                 const iframe = document.getElementById('html-preview');
                 iframe.style.display = 'block';
                 iframe.srcdoc = code;
             } else {
-                // Run Python/JS via Groq Executor API
-                terminal.innerHTML = `Menjalankan ${activeFile}...\n`;
+                terminal.innerHTML = `<span style="color: #f1c40f;">Menjalankan ${activeFile}...</span>\n`;
                 try {
                     const res = await fetch('/api/run', {
                         method: 'POST',
@@ -198,23 +217,14 @@
                         body: JSON.stringify({ code: code, language: files[activeFile].lang })
                     });
                     const data = await res.json();
-                    terminal.innerHTML = `<span style="color:#2ecc71;">${data.output || data.error}</span>`;
+                    terminal.innerHTML += `<span style="color:#2ecc71;">${data.output || data.error}</span>`;
                 } catch (e) {
-                    terminal.innerHTML = `<span style="color:#e74c3c;">Gagal menghubungi server eksekusi.</span>`;
+                    terminal.innerHTML += `<span style="color:#e74c3c;">Gagal menghubungi server.</span>`;
                 }
             }
         }
 
-        // FUNGSI 2: AI CHAT
-        function toggleAI(forceOpen = false) {
-            const sidebar = document.getElementById('aiSidebar');
-            if(forceOpen || sidebar.style.display === 'none' || sidebar.style.display === '') {
-                sidebar.style.display = 'flex';
-            } else {
-                sidebar.style.display = 'none';
-            }
-        }
-
+        // Chat AI Regular
         async function sendChat() {
             const input = document.getElementById('aiInput');
             const message = input.value.trim();
@@ -224,10 +234,9 @@
             chatArea.innerHTML += `<div class="chat-bubble chat-user">${message}</div>`;
             input.value = '';
             
-            // Ambil konteks kode dari editor
             const codeContext = editor.getValue();
-
-            chatArea.innerHTML += `<div class="chat-bubble chat-ai" id="loading-ai">Sedang berpikir...</div>`;
+            const loadingId = "load-" + Date.now();
+            chatArea.innerHTML += `<div class="chat-bubble chat-ai" id="${loadingId}">...</div>`;
             chatArea.scrollTop = chatArea.scrollHeight;
 
             try {
@@ -238,11 +247,36 @@
                 });
                 const data = await res.json();
                 
-                document.getElementById('loading-ai').remove();
-                chatArea.innerHTML += `<div class="chat-bubble chat-ai">${data.reply}</div>`;
+                document.getElementById(loadingId).innerText = data.reply;
                 chatArea.scrollTop = chatArea.scrollHeight;
             } catch (e) {
-                document.getElementById('loading-ai').innerText = "Gagal menghubungi AI Server.";
+                document.getElementById(loadingId).innerText = "Error server AI.";
+            }
+        }
+
+        // Request AI dari Klik Kanan
+        async function processAIExtra(code, action) {
+            const chatArea = document.getElementById('chatArea');
+            let actionText = action === 'explain' ? 'Tolong jelaskan kode ini' : (action === 'fix' ? 'Tolong perbaiki bug kode ini' : 'Beri komentar pada kode ini');
+            
+            chatArea.innerHTML += `<div class="chat-bubble chat-user">${actionText}</div>`;
+            
+            const loadingId = "load-" + Date.now();
+            chatArea.innerHTML += `<div class="chat-bubble chat-ai" id="${loadingId}">Menganalisa kode...</div>`;
+            chatArea.scrollTop = chatArea.scrollHeight;
+
+            try {
+                const res = await fetch('/api/edit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, action })
+                });
+                const data = await res.json();
+                
+                document.getElementById(loadingId).innerHTML = data.reply.replace(/\n/g, '<br>');
+                chatArea.scrollTop = chatArea.scrollHeight;
+            } catch (e) {
+                document.getElementById(loadingId).innerText = "Error memproses kode.";
             }
         }
     </script>
