@@ -3,522 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RexEditorCode - Ultra Edition</title>
+    <title>RexEditorCode - Workspace</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
     <style>
-        :root { 
-            --bg-main: #1e1e1e; 
-            --bg-sidebar: #252526; 
-            --bg-activity: #333333; 
-            --bg-panel: #1e1e1e; 
-            --text-color: #cccccc; 
-            --border-color: #3c3c3c; 
-            --accent-color: #007acc;
-            --ai-color: #f1c40f;
+        :root {
+            --bg-main: #1e1e1e; --bg-sidebar: #252526; --bg-activity: #333333;
+            --text-color: #cccccc; --border-color: #3c3c3c; --accent-color: #007acc; --ai-color: #f1c40f;
         }
-        
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg-main); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; }
-        
-        /* Modal Setup API Key */
-        #api-modal {
+
+        /* Overlay Deteksi HP Portrait */
+        #landscape-warning {
             display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;
+            background: #1e1e1e; z-index: 99999; color: white; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center; padding: 20px;
         }
-        .modal-content {
-            background: var(--bg-sidebar); border: 1px solid var(--border-color);
-            padding: 30px; border-radius: 6px; width: 90%; max-width: 450px; text-align: center;
+
+        @media screen and (max-width: 900px) and (orientation: portrait) {
+            #landscape-warning { display: flex; }
         }
-        .modal-content h2 { margin-bottom: 10px; color: #fff; font-weight: 400; }
-        .modal-content p { font-size: 13px; color: #aaa; margin-bottom: 20px; }
-        .modal-content input {
-            width: 100%; padding: 10px; background: var(--bg-main); border: 1px solid var(--border-color);
-            color: #fff; border-radius: 4px; margin-bottom: 15px; outline: none; font-family: monospace;
-        }
-        .btn-group { display: flex; gap: 10px; justify-content: center; }
-        .btn { padding: 8px 16px; border: none; border-radius: 2px; cursor: pointer; font-weight: 500; font-size: 13px; }
-        .btn-primary { background: var(--accent-color); color: white; }
-        .btn-secondary { background: #4d4d4d; color: white; }
 
-        /* Activity Bar (Kiri) */
-        .activity-bar { width: 48px; background: var(--bg-activity); display: flex; flex-direction: column; align-items: center; padding: 10px 0; z-index: 10; border-right: 1px solid var(--border-color);}
-        .icon-btn { font-size: 22px; cursor: pointer; padding: 12px 0; width: 100%; text-align: center; color: #858585; transition: 0.1s; }
-        .icon-btn:hover { color: #fff; }
-        .icon-btn.active { color: #fff; border-left: 2px solid var(--accent-color); }
-        .btn-ai { color: var(--ai-color); margin-top: 10px; }
-        .btn-settings { margin-top: auto; }
-        
-        /* Sidebar View */
-        .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .sidebar-panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
-        .sidebar-panel.active { display: flex; }
-        
-        .sidebar-header { padding: 10px 20px; font-size: 11px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 0.5px;}
-        .section-title { font-size: 11px; font-weight: bold; padding: 5px 20px; background: #2a2a2a; border-top: 1px solid var(--border-color); cursor: pointer; display: flex; align-items: center; gap: 5px;}
-        
-        /* Lists Container */
-        .file-list { list-style: none; overflow-y: auto; max-height: 250px; border-bottom: 1px solid var(--border-color); }
-        .file-item { padding: 5px 20px 5px 30px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #ccc; position: relative;}
-        .file-item:hover { background: #2a2d2e; color: #fff;}
-        .file-item.active { background: #37373d; color: #fff;}
-        .file-item .delete-btn { position: absolute; right: 15px; display: none; color: #e74c3c; cursor: pointer; }
-        .file-item:hover .delete-btn { display: inline; }
-        
-        /* Search Panel Styles */
-        .search-box { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .search-box input { padding: 6px; background: var(--bg-main); border: 1px solid var(--border-color); color: #fff; outline: none; font-size: 13px;}
-        #search-results { flex: 1; overflow-y: auto; padding: 0 15px; font-size: 12px; list-style: none;}
-        .search-res-item { padding: 6px; border-bottom: 1px solid #333; cursor: pointer; }
-        .search-res-item:hover { background: #333; }
+        /* Activity Bar Kiri */
+        .activity-bar { width: 48px; background: var(--bg-activity); display: flex; flex-direction: column; align-items: center; padding: 10px 0; border-right: 1px solid var(--border-color); }
+        .icon-btn { font-size: 20px; cursor: pointer; padding: 14px 0; width: 100%; text-align: center; color: #858585; }
+        .icon-btn:hover, .icon-btn.active { color: #fff; }
+        .btn-ai { color: var(--ai-color); }
 
-        /* Main Workspace Area */
-        .main-area { flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0;}
-        .tabs-container { height: 35px; background: #252526; display: flex; overflow-x: auto; border-bottom: 1px solid var(--border-color);}
-        .tab { padding: 0 15px; background: #2d2d2d; border-right: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; min-width: 120px; color: #969696; border-top: 2px solid transparent;}
-        .tab.active { background: var(--bg-main); color: #fff; border-top-color: var(--accent-color); }
-        .tab-close { font-size: 10px; margin-left: auto; border-radius: 3px; padding: 2px; }
-        .tab-close:hover { background: rgba(255,255,255,0.2); color: #ff5555; }
+        /* Sidebar Proyek */
+        .sidebar { width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .sidebar-header { padding: 10px 15px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); }
+        .file-list { list-style: none; overflow-y: auto; flex: 1; }
+        .file-item { padding: 6px 15px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        .file-item:hover, .file-item.active { background: #37373d; color: #fff; }
         
-        /* Editor Wrapper */
-        .editor-wrapper { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-        #editor-container { flex: 1; width: 100%; }
-        #html-preview { display: none; flex: 1; background: #fff; border: none; width: 100%; }
+        /* Main Space + Split Editor Container */
+        .main-workspace { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .tabs-container { height: 35px; background: #252526; display: flex; border-bottom: 1px solid var(--border-color); }
+        .tab { padding: 0 15px; display: flex; align-items: center; gap: 8px; font-size: 13px; background: #2d2d2d; cursor: pointer; border-right: 1px solid var(--border-color); color: #969696; }
+        .tab.active { background: var(--bg-main); color: #fff; border-top: 2px solid var(--accent-color); }
         
-        /* Terminal */
-        .bottom-panel { height: 180px; background: var(--bg-panel); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .panel-header { display: flex; padding: 0 20px; font-size: 11px; gap: 20px; background: #1e1e1e; border-bottom: 1px solid #2d2d2d;}
-        .panel-tab { padding: 10px 0; color: #858585; text-transform: uppercase; font-weight: 500; border-bottom: 1px solid transparent;}
-        .panel-tab.active { color: #fff; border-bottom-color: var(--accent-color); }
-        .panel-actions { margin-left: auto; display: flex; align-items: center; gap: 15px; }
-        .panel-actions i { cursor: pointer; color: #858585; }
-        .panel-actions i:hover { color: #fff; }
-        .panel-content { flex: 1; padding: 10px 20px; font-family: 'Consolas', monospace; font-size: 13px; overflow-y: auto; white-space: pre-wrap; color: #d4d4d4; background: #1e1e1e;}
+        .editors-layout { flex: 1; display: flex; min-height: 0; background: #161616; gap: 2px; }
+        .editor-pane { flex: 1; display: flex; flex-direction: column; position: relative; background: var(--bg-main); min-width: 0; }
+        .pane-header { background: #222; padding: 4px 10px; font-size: 11px; color: #858585; text-transform: uppercase; border-bottom: 1px solid #2d2d2d; }
+        .monaco-frame { flex: 1; width: 100%; height: 100%; }
 
-        /* AI Sidebar Chat */
-        .ai-sidebar { width: 320px; background: var(--bg-sidebar); border-left: 1px solid var(--border-color); display: none; flex-direction: column; }
-        .ai-sidebar.visible { display: flex; }
-        .ai-header { padding: 10px 15px; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; text-transform: uppercase;}
-        .ai-chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; }
-        .chat-bubble { padding: 10px 12px; border-radius: 6px; max-width: 95%; line-height: 1.4; word-wrap: break-word;}
-        .chat-user { background: var(--accent-color); color: #fff; align-self: flex-end; }
-        .chat-ai { background: var(--bg-main); color: var(--text-color); align-self: flex-start; border: 1px solid var(--border-color); font-family: 'Consolas', monospace; font-size: 12px;}
-        .ai-input-area { padding: 10px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; background: var(--bg-main);}
-        .ai-input-area input { flex: 1; padding: 8px 10px; background: var(--bg-sidebar); border: 1px solid var(--border-color); color: #fff; border-radius: 2px; outline: none; }
-        .ai-input-area button { padding: 0 12px; background: var(--accent-color); border: none; color: white; border-radius: 2px; cursor: pointer;}
-        
-        /* Icons File Colors */
-        .fa-html5 { color: #e34c26; }
-        .fa-python { color: #3776ab; }
-        .fa-js { color: #f7df1e; }
-        #file-upload-input { display: none; }
+        /* Bottom Terminal */
+        .terminal-panel { height: 150px; background: var(--bg-main); border-top: 1px solid var(--border-color); padding: 10px 15px; font-family: monospace; font-size: 12px; overflow-y: auto; color: #d4d4d4; }
     </style>
 </head>
 <body>
 
-    <!-- Modal Masuk / Setup API Key -->
-    <div id="api-modal">
-        <div class="modal-content">
-            <h2><i class="fas fa-code"></i> RexEditorCode</h2>
-            <p>Masukkan API Key Groq Anda untuk mengaktifkan AI Assistant & fitur Compile otomatis. Anda bisa melewatinya jika ingin menggunakan editor biasa.</p>
-            <input type="password" id="api-input-field" placeholder="gsk_xxxxxxxxxxxxxxxxxxxx">
-            <div class="btn-group">
-                <button class="btn btn-primary" onclick="saveKey()">Simpan & Hidupkan AI</button>
-                <button class="btn btn-secondary" onclick="skipKey()">Lewati (Tanpa AI)</button>
-            </div>
-        </div>
+    <div id="landscape-warning">
+        <i class="fas fa-mobile-alt" style="font-size: 50px; color: #f1c40f; margin-bottom: 15px;"></i>
+        <h2>Harap Putar Layar HP Anda</h2>
+        <p>Gunakan mode landscape (horizontal) demi kenyamanan coding terbaik di RexEditorCode.</p>
     </div>
 
-    <input type="file" id="file-upload-input" onchange="handleFileUpload(event)">
-
-    <!-- 1. ACTIVITY BAR -->
     <div class="activity-bar">
-        <i class="far fa-copy icon-btn active" id="act-explorer" title="Explorer" onclick="switchSidebar('explorer')"></i>
-        <i class="fas fa-search icon-btn" id="act-search" title="Search Across Files" onclick="switchSidebar('search')"></i>
-        <i class="fas fa-play icon-btn" style="color: #89d185;" title="Run Code" onclick="runCode()"></i>
-        <i class="fas fa-robot icon-btn btn-ai" title="Rex AI Chat" onclick="toggleAI()"></i>
-        <i class="fas fa-cog icon-btn btn-settings" title="Ubah API Key" onclick="showApiModal()"></i>
+        <i class="fas fa-file-medical icon-btn" title="Buat File Baru" onclick="createNewFile()"></i>
+        <i class="fas fa-file-excel icon-btn" style="color: #e74c3c;" title="Hapus File Aktif" onclick="deleteActiveFile()"></i>
+        <i class="fas fa-search icon-btn" title="Pencarian File" onclick="searchFiles()"></i>
+        <i class="fas fa-play icon-btn" style="color: #89d185;" title="Run Code (AI)" onclick="runActiveCode()"></i>
+        <i class="fas fa-columns icon-btn" title="Toggle Mode Dua Layar (Split View)" onclick="toggleSplitView()"></i>
+        <i class="fas fa-robot icon-btn btn-ai" title="Buka Asisten AI Global" onclick="window.location.href='ai.html'"></i>
+        <i class="fas fa-sign-out-alt icon-btn" style="margin-top: auto;" title="Keluar / Ganti API" onclick="window.location.href='login.html'"></i>
     </div>
 
-    <!-- 2. SIDEBAR VIEWS -->
     <div class="sidebar">
-        <!-- Explorer Panel -->
-        <div id="panel-explorer" class="sidebar-panel active">
-            <div class="sidebar-header"><span>Explorer</span></div>
-            
-            <div class="section-title"><i class="fas fa-chevron-down"></i> OPEN EDITORS</div>
-            <ul class="file-list" id="openEditorsList"></ul>
-
-            <div class="section-title"><i class="fas fa-chevron-down"></i> REX_WORKSPACE</div>
-            <div style="padding: 10px 20px; display: flex; gap: 8px;">
-                <button class="btn btn-secondary" style="flex:1; padding:3px; font-size:11px;" onclick="createNewFile()"><i class="fas fa-plus"></i> File Baru</button>
-                <button class="btn btn-secondary" style="flex:1; padding:3px; font-size:11px;" onclick="document.getElementById('file-upload-input').click()"><i class="fas fa-upload"></i> Upload</button>
-            </div>
-            <ul class="file-list" id="fileList" style="max-height: none; flex: 1;"></ul>
-        </div>
-
-        <!-- Search Panel -->
-        <div id="panel-search" class="sidebar-panel">
-            <div class="sidebar-header"><span>Search</span></div>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Cari teks di semua file..." oninput="searchInFiles()">
-            </div>
-            <ul id="search-results"></ul>
-        </div>
+        <div class="sidebar-header">Workspace Files</div>
+        <ul class="file-list" id="fileList"></ul>
     </div>
 
-    <!-- 3. MAIN WORKSPACE -->
-    <div class="main-area">
-        <div class="tabs-container" id="tabs"></div>
+    <div class="main-workspace">
+        <div class="tabs-container" id="tabsBox"></div>
         
-        <div class="editor-wrapper">
-            <div id="editor-container"></div>
-            <iframe id="html-preview"></iframe>
-        </div>
-        
-        <!-- Terminal Panel -->
-        <div class="bottom-panel">
-            <div class="panel-header">
-                <div class="panel-tab active">TERMINAL</div>
-                <div class="panel-actions">
-                    <i class="fas fa-download" title="Download File Aktif" onclick="downloadFile()"></i>
-                    <i class="fas fa-trash" title="Bersihkan Terminal" onclick="document.getElementById('terminal').innerHTML = 'PS C:\\RexEditorCode&gt; '"></i>
-                </div>
+        <div class="editors-layout">
+            <div class="editor-pane" id="paneLeft">
+                <div class="pane-header">Layar Editor Utama</div>
+                <div id="editorLeft" class="monaco-frame"></div>
             </div>
-            <div class="panel-content" id="terminal">PS C:\RexEditorCode> Sistem siap...</div>
+            <div class="editor-pane" id="paneRight" style="display: none;">
+                <div class="pane-header">Layar Editor Kedua (Split View)</div>
+                <div id="editorRight" class="monaco-frame"></div>
+            </div>
         </div>
-    </div>
 
-    <!-- 4. AI CHAT SIDEBAR (GROQ) -->
-    <div class="ai-sidebar" id="aiSidebar">
-        <div class="ai-header">
-            <span>✨ Rex AI Assistant</span>
-            <i class="fas fa-times" style="cursor:pointer;" onclick="toggleAI()"></i>
-        </div>
-        <div class="ai-chat-area" id="chatArea">
-            <div class="chat-bubble chat-ai">Halo! Aku terhubung ke Groq API. Kamu bisa tanya apa saja, atau blok kode di editor lalu <b>klik kanan</b> untuk menu sakti AI!</div>
-        </div>
-        <div class="ai-input-area">
-            <input type="text" id="aiInput" placeholder="Tanya sesuatu..." onkeypress="if(event.key === 'Enter') sendChat()">
-            <button onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
-        </div>
+        <div class="terminal-panel" id="terminalBox">PS C:\RexEditorCode> Selamat datang kembali. Terminal siap digunakan...</div>
     </div>
 
     <script>
-        // --- DATA BINDING & LOCALSTORAGE ---
-        let userGroqKey = localStorage.getItem('rex_groq_key') || "";
-        
-        // Cek jika ada file tersimpan di LocalStorage, jika kosong pakai file default
-        let defaultFiles = {
-            "index.html": { lang: "html", code: "<!DOCTYPE html>\n<html>\n<head>\n  <title>Rex Web Preview</title>\n</head>\n<body>\n  <h1 style='color: #007acc;'>Halo Dunia dari RexEditorCode!</h1>\n</body>\n</html>" },
-            "A-2.py": { lang: "python", code: "#roman numeral converter\nimport re\nprint('Menjalankan file Python via Groq AI...')" }
+        const provider = localStorage.getItem('rex_provider') || 'none';
+        const apiKey = localStorage.getItem('rex_key') || '';
+
+        let files = JSON.parse(localStorage.getItem('rex_project_files')) || {
+            "main.py": { lang: "python", code: "print('Halo dari RexEditorCode!')\n# Coba buat file baru atau aktifkan split view." },
+            "index.html": { lang: "html", code: "<h1>Halo Dunia</h1>" }
         };
-        
-        let files = JSON.parse(localStorage.getItem('rex_files')) || defaultFiles;
-        let openTabs = JSON.parse(localStorage.getItem('rex_open_tabs')) || ["index.html", "A-2.py"];
-        let activeFile = localStorage.getItem('rex_active_file') || "A-2.py";
-        let editor;
-
-        window.onload = () => {
-            if (!userGroqKey) showApiModal();
-        };
-
-        function saveFilesToStorage() {
-            localStorage.setItem('rex_files', JSON.stringify(files));
-            localStorage.setItem('rex_open_tabs', JSON.stringify(openTabs));
-            localStorage.setItem('rex_active_file', activeFile);
-        }
-
-        function showApiModal() {
-            document.getElementById('api-modal').style.display = 'flex';
-            document.getElementById('api-input-field').value = userGroqKey;
-        }
-
-        function saveKey() {
-            const key = document.getElementById('api-input-field').value.trim();
-            if (key) {
-                userGroqKey = key;
-                localStorage.setItem('rex_groq_key', key);
-                document.getElementById('api-modal').style.display = 'none';
-                logTerminal("Koneksi API Groq Berhasil Terhubung.");
-            }
-        }
-
-        function skipKey() {
-            document.getElementById('api-modal').style.display = 'none';
-            logTerminal("Mode Offline Aktif (Fitur AI & Runner dinonaktifkan).", "#e67e22");
-        }
-
-        // --- SISTEM FILE & TAB MANAGEMENT ---
-        function getFileIcon(filename) {
-            if (filename.endsWith('.html')) return 'fab fa-html5';
-            if (filename.endsWith('.py')) return 'fab fa-python';
-            if (filename.endsWith('.js')) return 'fab fa-js';
-            return 'far fa-file-code';
-        }
-
-        function getLanguage(filename) {
-            if (filename.endsWith('.js')) return "javascript";
-            if (filename.endsWith('.py')) return "python";
-            if (filename.endsWith('.html')) return "html";
-            return "plaintext";
-        }
+        let activeFile = Object.keys(files)[0] || "";
+        let editorL, editorR;
+        let isSplitMode = false;
 
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' }});
         require(['vs/editor/editor.main'], function() {
-            editor = monaco.editor.create(document.getElementById('editor-container'), {
+            editorL = monaco.editor.create(document.getElementById('editorLeft'), {
                 value: files[activeFile] ? files[activeFile].code : "",
                 language: files[activeFile] ? files[activeFile].lang : "plaintext",
-                theme: 'vs-dark', automaticLayout: true, fontSize: 13,
-                fontFamily: "'Consolas', 'Courier New', monospace", minimap: { enabled: false }
+                theme: 'vs-dark', automaticLayout: true
             });
 
-            editor.onDidChangeModelContent(() => {
-                if (files[activeFile]) {
-                    files[activeFile].code = editor.getValue();
-                    saveFilesToStorage();
+            editorR = monaco.editor.create(document.getElementById('editorRight'), {
+                value: "", language: "plaintext", theme: 'vs-dark', automaticLayout: true
+            });
+
+            editorL.onDidChangeModelContent(() => {
+                if(activeFile && files[activeFile]) {
+                    files[activeFile].code = editorL.getValue();
+                    localStorage.setItem('rex_project_files', JSON.stringify(files));
                 }
             });
 
-            // --- KLIK KANAN MENYALA KEMBALI ---
-            const aiActions = [
-                { id: 'ai-explain', label: '✨ Tanya AI: Jelaskan Kode Ini', action: 'explain' },
-                { id: 'ai-fix', label: '🐛 Tanya AI: Cari & Fix Bug', action: 'fix' },
-                { id: 'ai-comment', label: '📝 Tanya AI: Beri Komentar Penjelasan', action: 'comment' }
-            ];
-
-            aiActions.forEach((act, idx) => {
-                editor.addAction({
-                    id: act.id, label: act.label, contextMenuGroupId: 'navigation', contextMenuOrder: idx,
-                    run: function(ed) {
-                        const selectedCode = ed.getModel().getValueInRange(ed.getSelection());
-                        if (selectedCode) {
-                            if(!document.getElementById('aiSidebar').classList.contains('visible')) toggleAI();
-                            processAIExtra(selectedCode, act.action);
-                        } else {
-                            alert("Blok kalimat/baris kode terlebih dahulu!");
-                        }
-                    }
-                });
-            });
-
-            renderUI();
+            renderSidebar();
         });
 
-        function renderUI() {
-            const list = document.getElementById("fileList");
-            const openList = document.getElementById("openEditorsList");
-            const tabsContainer = document.getElementById("tabs");
-            
-            list.innerHTML = ""; openList.innerHTML = ""; tabsContainer.innerHTML = "";
-            
-            // Render Daftar Semua File di Workspace
-            Object.keys(files).forEach(fileName => {
-                const li = document.createElement("li");
-                li.className = `file-item ${fileName === activeFile ? 'active' : ''}`;
-                li.innerHTML = `<i class="${getFileIcon(fileName)}"></i> ${fileName} <i class="fas fa-trash-alt delete-btn" onclick="deleteFile('${fileName}', event)"></i>`;
-                li.onclick = () => openFile(fileName);
+        function renderSidebar() {
+            const list = document.getElementById('fileList');
+            const tabs = document.getElementById('tabsBox');
+            list.innerHTML = ""; tabs.innerHTML = "";
+
+            Object.keys(files).forEach(name => {
+                const li = document.createElement('li');
+                li.className = `file-item ${name === activeFile ? 'active' : ''}`;
+                li.innerHTML = `<i class="far fa-file-code"></i> ${name}`;
+                li.onclick = () => selectFile(name);
                 list.appendChild(li);
-            });
 
-            // Render Open Editors & Top Tabs
-            openTabs.forEach(fileName => {
-                if(!files[fileName]) return;
-                
-                // Open Editors list
-                const oLi = document.createElement("li");
-                oLi.className = `file-item ${fileName === activeFile ? 'active' : ''}`;
-                oLi.innerHTML = `<i class="${getFileIcon(fileName)}"></i> ${fileName}`;
-                oLi.onclick = () => openFile(fileName);
-                openList.appendChild(oLi);
-
-                // Top Tabs
-                const tab = document.createElement("div");
-                tab.className = `tab ${fileName === activeFile ? 'active' : ''}`;
-                tab.innerHTML = `<i class="${getFileIcon(fileName)}"></i> ${fileName} <i class="fas fa-times tab-close" onclick="closeTab('${fileName}', event)"></i>`;
-                tab.onclick = () => openFile(fileName);
-                tabsContainer.appendChild(tab);
+                if(name === activeFile) {
+                    tabs.innerHTML = `<div class="tab active"><i class="far fa-file-code"></i> ${name}</div>`;
+                }
             });
         }
 
-        function openFile(fileName) {
-            if(!files[fileName]) return;
-            activeFile = fileName;
-            
-            if(!openTabs.includes(fileName)) {
-                openTabs.push(fileName);
-            }
-
-            document.getElementById('editor-container').style.display = 'block';
-            document.getElementById('html-preview').style.display = 'none';
-
-            monaco.editor.setModelLanguage(editor.getModel(), files[fileName].lang);
-            editor.setValue(files[fileName].code);
-            
-            renderUI();
-            saveFilesToStorage();
-        }
-
-        function closeTab(fileName, event) {
-            event.stopPropagation();
-            openTabs = openTabs.filter(t => t !== fileName);
-            if (activeFile === fileName && openTabs.length > 0) {
-                activeFile = openTabs[openTabs.length - 1];
-            }
-            if(openTabs.length === 0) {
-                editor.setValue("// Semua tab ditutup. Silakan pilih atau buat file baru di sebelah kiri.");
-                activeFile = "";
-            } else {
-                openFile(activeFile);
-            }
-            renderUI();
-            saveFilesToStorage();
+        function selectFile(name) {
+            activeFile = name;
+            monaco.editor.setModelLanguage(editorL.getModel(), files[name].lang);
+            editorL.setValue(files[name].code);
+            renderSidebar();
         }
 
         function createNewFile() {
-            const fileName = prompt("Nama file baru (Contoh: script.js, test.py):");
-            if(fileName && !files[fileName]) {
-                files[fileName] = { lang: getLanguage(fileName), code: "" };
-                openFile(fileName);
-            }
-        }
-
-        function deleteFile(fileName, event) {
-            event.stopPropagation();
-            if(confirm(`Hapus permanen file ${fileName}?`)) {
-                delete files[fileName];
-                closeTab(fileName, event);
-            }
-        }
-
-        // --- UPLOAD & DOWNLOAD SYSTEM ---
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                files[file.name] = { lang: getLanguage(file.name), code: e.target.result };
-                openFile(file.name);
-                logTerminal(`Berhasil Mengunggah ${file.name}`);
-            };
-            reader.readAsText(file);
-        }
-
-        function downloadFile() {
-            if (!files[activeFile]) return;
-            const blob = new Blob([editor.getValue()], { type: 'text/plain' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = activeFile;
-            a.click();
-            logTerminal(`File ${activeFile} berhasil diunduh ke komputer.`);
-        }
-
-        // --- SIDEBAR SWITCHER & SEARCH PANEL ---
-        function switchSidebar(view) {
-            document.getElementById('act-explorer').classList.remove('active');
-            document.getElementById('act-search').classList.remove('active');
-            document.getElementById('panel-explorer').classList.remove('active');
-            document.getElementById('panel-search').classList.remove('active');
-
-            if(view === 'explorer') {
-                document.getElementById('act-explorer').classList.add('active');
-                document.getElementById('panel-explorer').classList.add('active');
-            } else {
-                document.getElementById('act-search').classList.add('active');
-                document.getElementById('panel-search').classList.add('active');
-            }
-        }
-
-        function searchInFiles() {
-            const query = document.getElementById("searchInput").value.toLowerCase();
-            const resultsContainer = document.getElementById("search-results");
-            resultsContainer.innerHTML = "";
-            if(!query) return;
-
-            Object.keys(files).forEach(name => {
-                if(files[name].code.toLowerCase().includes(query)) {
-                    const li = document.createElement("li");
-                    li.className = "search-res-item";
-                    li.innerHTML = `<strong>${name}</strong><br><span style="color:#858585;">Ditemukan kecocokan teks...</span>`;
-                    li.onclick = () => openFile(name);
-                    resultsContainer.appendChild(li);
-                }
-            });
-        }
-
-        // --- ENGINE RUNNER & AI COMMANDS ---
-        function getHeaders() { return { 'Content-Type': 'application/json', 'x-groq-key': userGroqKey }; }
-
-        function logTerminal(msg, color = "#d4d4d4") {
-            const term = document.getElementById("terminal");
-            term.innerHTML += `<br><span style="color:${color};">PS C:\\RexEditorCode> ${msg}</span>`;
-            term.scrollTop = term.scrollHeight;
-        }
-
-        async function runCode() {
-            if(!activeFile) return;
-            const code = editor.getValue();
+            const name = prompt("Masukkan nama file beserta ekstensi (contoh: app.js, index.html):");
+            if(!name) return;
+            let ext = name.split('.').pop();
+            let lang = ext === 'py' ? 'python' : ext === 'js' ? 'javascript' : ext === 'html' ? 'html' : 'plaintext';
             
-            if(activeFile.endsWith(".html")) {
-                logTerminal("Membuka Live Preview HTML Lokal...");
-                document.getElementById('editor-container').style.display = 'none';
-                const iframe = document.getElementById('html-preview');
-                iframe.style.display = 'block';
-                iframe.srcdoc = code;
+            files[name] = { lang: lang, code: "" };
+            localStorage.setItem('rex_project_files', JSON.stringify(files));
+            selectFile(name);
+        }
+
+        function deleteActiveFile() {
+            if(!activeFile) return;
+            if(confirm(`Apakah Anda yakin ingin menghapus file ${activeFile}?`)) {
+                delete files[activeFile];
+                localStorage.setItem('rex_project_files', JSON.stringify(files));
+                activeFile = Object.keys(files)[0] || "";
+                if(activeFile) selectFile(activeFile);
+                else { editorL.setValue(""); renderSidebar(); }
+            }
+        }
+
+        function toggleSplitView() {
+            isSplitMode = !isSplitMode;
+            const paneR = document.getElementById('paneRight');
+            if(isSplitMode) {
+                paneR.style.display = "flex";
+                editorR.setValue("// Masukkan kode sekunder di sini untuk perbandingan...");
+                monaco.editor.setModelLanguage(editorR.getModel(), "javascript");
+            } else {
+                paneR.style.display = "none";
+            }
+        }
+
+        function searchFiles() {
+            const query = prompt("Masukkan nama file yang dicari:");
+            if(!query) return;
+            const found = Object.keys(files).find(n => n.toLowerCase().includes(query.toLowerCase()));
+            if(found) selectFile(found);
+            else alert("File tidak ditemukan di dalam Workspace!");
+        }
+
+        async function runActiveCode() {
+            if(!activeFile) return;
+            if(provider === 'none') {
+                document.getElementById('terminalBox').innerHTML += `<br><span style="color:#e74c3c;">[ERROR] Anda masuk tanpa AI. Fitur Eksekusi Code dinonaktifkan.</span>`;
                 return;
             }
 
-            if(!userGroqKey) return logTerminal("Gagal: Fitur eksekusi butuh API Key Groq. Pasang lewat tombol gir.", "#f14c4c");
+            document.getElementById('terminalBox').innerHTML += `<br><span style="color:#f1c40f;">[RUNNING] Meminta hasil eksekusi dari AI (${provider})...</span>`;
             
-            logTerminal(`Menjalankan interpreter Groq untuk ${activeFile}...`, "#f1c40f");
             try {
-                const res = await fetch('/api/run', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ code, language: files[activeFile].lang }) });
+                const res = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider, apiKey, code: editorL.getValue(), language: files[activeFile].lang })
+                });
                 const data = await res.json();
                 if(data.error) throw new Error(data.error);
-                document.getElementById("terminal").innerHTML += `<br><span style="color:#b5cea8;">${data.output}</span>`;
-            } catch (e) {
-                logTerminal(e.message, "#f14c4c");
-            }
-        }
-
-        function toggleAI() { document.getElementById('aiSidebar').classList.toggle('visible'); }
-
-        async function sendChat() {
-            if(!userGroqKey) return alert("Pasang API Key Groq Anda terlebih dulu!");
-            const input = document.getElementById('aiInput');
-            const message = input.value.trim();
-            if(!message) return;
-
-            const chatArea = document.getElementById('chatArea');
-            chatArea.innerHTML += `<div class="chat-bubble chat-user">${message}</div>`;
-            input.value = '';
-            
-            const loadId = "l-" + Date.now();
-            chatArea.innerHTML += `<div class="chat-bubble chat-ai" id="${loadId}">Berpikir...</div>`;
-            chatArea.scrollTop = chatArea.scrollHeight;
-
-            try {
-                const res = await fetch('/api/chat', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ message, codeContext: editor.getValue() }) });
-                const data = await res.json();
-                document.getElementById(loadId).innerHTML = data.reply.replace(/\n/g, '<br>');
-            } catch (e) {
-                document.getElementById(loadId).innerText = "Koneksi terputus atau API Key salah.";
-            }
-        }
-
-        async function processAIExtra(code, action) {
-            const chatArea = document.getElementById('chatArea');
-            const loadId = "l-" + Date.now();
-            chatArea.innerHTML += `<div class="chat-bubble chat-ai" id="${loadId}">Sedang menganalisa baris kode...</div>`;
-            chatArea.scrollTop = chatArea.scrollHeight;
-
-            try {
-                const res = await fetch('/api/edit', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ code, action }) });
-                const data = await res.json();
-                document.getElementById(loadId).innerHTML = data.reply.replace(/\n/g, '<br>');
-            } catch (e) {
-                document.getElementById(loadId).innerText = "Gagal memproses kode via AI.";
+                document.getElementById('terminalBox').innerHTML += `<br><span style="color:#2ecc71;">${data.output.replace(/\n/g, '<br>')}</span>`;
+            } catch(err) {
+                document.getElementById('terminalBox').innerHTML += `<br><span style="color:#e74c3c;">[ERROR] ${err.message}</span>`;
             }
         }
     </script>
