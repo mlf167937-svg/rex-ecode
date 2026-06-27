@@ -32,15 +32,17 @@
         <div class="form-group">
             <label>Pilih Provider AI</label>
             <select id="aiProvider" onchange="updateTutorial()">
-                <option value="groq">Groq Cloud AI (Rekomendasi - Cepat)</option>
+                <option value="groq">Groq Cloud AI (Rekomendasi - Tercepat)</option>
                 <option value="openai">OpenAI (GPT-4o / GPT-3.5)</option>
                 <option value="gemini">Google Gemini AI</option>
+                <option value="claude">Anthropic Claude AI</option>
+                <option value="deepseek">DeepSeek AI</option>
             </select>
         </div>
 
         <div class="form-group" id="keyGroup">
             <label>Masukkan API Key Anda</label>
-            <input type="password" id="apiKey" placeholder="Masukkan token api disini...">
+            <input type="password" id="apiKey" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx">
         </div>
 
         <div id="tutorialText" class="tutorial-box"></div>
@@ -51,9 +53,11 @@
 
     <script>
         const tutorials = {
-            groq: 'Cara dapatkan API Key Groq gratis:<br>1. Masuk ke <a href="https://console.groq.com/" target="_blank">Groq Console</a><br>2. Registrasi / Login via Google.<br>3. Buka menu "API Keys" lalu klik "Create API Key".',
-            openai: 'Cara dapatkan API Key OpenAI:<br>1. Kunjungi <a href="https://platform.openai.com/" target="_blank">OpenAI Platform</a><br>2. Buka menu API Keys dan buat kunci baru.<br>3. Pastikan Anda memiliki saldo kredit aktif di akun Anda.',
-            gemini: 'Cara dapatkan API Key Gemini gratis:<br>1. Kunjungi <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a><br>2. Klik tombol "Create API Key".<br>3. Hubungkan dengan project Google Cloud Anda.'
+            groq: 'Cara dapatkan API Key Groq gratis:<br>1. Masuk ke <a href="https://console.groq.com/" target="_blank">Groq Console</a><br>2. Buka menu "API Keys" lalu klik "Create API Key".',
+            openai: 'Cara dapatkan API Key OpenAI:<br>1. Kunjungi <a href="https://platform.openai.com/" target="_blank">OpenAI Platform</a><br>2. Buka menu API Keys dan buat kunci baru.',
+            gemini: 'Cara dapatkan API Key Gemini gratis:<br>1. Kunjungi <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a><br>2. Klik tombol "Create API Key".',
+            claude: 'Cara dapatkan API Key Claude Anthropic:<br>1. Masuk ke <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a><br>2. Klaim kredensial di tab "API Keys".',
+            deepseek: 'Cara dapatkan API Key DeepSeek:<br>1. Buka laman resmi <a href="https://platform.deepseek.com/" target="_blank">DeepSeek Platform</a><br>2. Buat API Key baru di dashboard profil.'
         };
 
         function updateTutorial() {
@@ -79,7 +83,6 @@
             window.location.href = 'index.html';
         }
 
-        // Jalankan fungsi saat awal dibuka
         updateTutorial();
     </script>
 </body>
