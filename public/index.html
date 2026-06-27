@@ -26,22 +26,22 @@
         }
 
         /* Activity Bar Kiri */
-        .activity-bar { width: 48px; background: var(--bg-activity); display: flex; flex-direction: column; align-items: center; padding: 10px 0; border-right: 1px solid var(--border-color); }
-        .icon-btn { font-size: 20px; cursor: pointer; padding: 14px 0; width: 100%; text-align: center; color: #858585; }
+        .activity-bar { width: 48px; background: var(--bg-activity); display: flex; flex-direction: column; align-items: center; padding: 10px 0; border-right: 1px solid var(--border-color); flex-shrink: 0; }
+        .icon-btn { font-size: 20px; cursor: pointer; padding: 14px 0; width: 100%; text-align: center; color: #858585; transition: color 0.2s; }
         .icon-btn:hover, .icon-btn.active { color: #fff; }
         .btn-ai { color: var(--ai-color); }
 
         /* Sidebar Proyek */
-        .sidebar { width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .sidebar { width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; }
         .sidebar-header { padding: 10px 15px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); }
         .file-list { list-style: none; overflow-y: auto; flex: 1; }
-        .file-item { padding: 6px 15px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        .file-item { padding: 8px 15px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #aaa; }
         .file-item:hover, .file-item.active { background: #37373d; color: #fff; }
         
         /* Main Space + Split Editor Container */
         .main-workspace { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-        .tabs-container { height: 35px; background: #252526; display: flex; border-bottom: 1px solid var(--border-color); }
-        .tab { padding: 0 15px; display: flex; align-items: center; gap: 8px; font-size: 13px; background: #2d2d2d; cursor: pointer; border-right: 1px solid var(--border-color); color: #969696; }
+        .tabs-container { height: 35px; background: #252526; display: flex; border-bottom: 1px solid var(--border-color); overflow-x: auto; }
+        .tab { padding: 0 15px; display: flex; align-items: center; gap: 8px; font-size: 13px; background: #2d2d2d; cursor: pointer; border-right: 1px solid var(--border-color); color: #969696; height: 100%; }
         .tab.active { background: var(--bg-main); color: #fff; border-top: 2px solid var(--accent-color); }
         
         .editors-layout { flex: 1; display: flex; min-height: 0; background: #161616; gap: 2px; }
@@ -50,7 +50,7 @@
         .monaco-frame { flex: 1; width: 100%; height: 100%; }
 
         /* Bottom Terminal */
-        .terminal-panel { height: 150px; background: var(--bg-main); border-top: 1px solid var(--border-color); padding: 10px 15px; font-family: monospace; font-size: 12px; overflow-y: auto; color: #d4d4d4; }
+        .terminal-panel { height: 150px; background: var(--bg-main); border-top: 1px solid var(--border-color); padding: 10px 15px; font-family: monospace; font-size: 12px; overflow-y: auto; color: #d4d4d4; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -62,12 +62,12 @@
     </div>
 
     <div class="activity-bar">
-        <i class="fas fa-file-medical icon-btn" title="Buat File Baru" onclick="createNewFile()"></i>
-        <i class="fas fa-file-excel icon-btn" style="color: #e74c3c;" title="Hapus File Aktif" onclick="deleteActiveFile()"></i>
-        <i class="fas fa-search icon-btn" title="Pencarian File" onclick="searchFiles()"></i>
-        <i class="fas fa-play icon-btn" style="color: #89d185;" title="Run Code (AI)" onclick="runActiveCode()"></i>
-        <i class="fas fa-columns icon-btn" title="Toggle Mode Dua Layar (Split View)" onclick="toggleSplitView()"></i>
-        <i class="fas fa-robot icon-btn btn-ai" title="Buka Asisten AI Global" onclick="window.location.href='ai.html'"></i>
+        <i class="fas fa-file-medical icon-btn" title="Create File" onclick="createNewFile()"></i>
+        <i class="fas fa-file-excel icon-btn" style="color: #e74c3c;" title="Delete File Aktif" onclick="deleteActiveFile()"></i>
+        <i class="fas fa-search icon-btn" title="Search File" onclick="searchFiles()"></i>
+        <i class="fas fa-play icon-btn" style="color: #89d185;" title="Run Code" onclick="runActiveCode()"></i>
+        <i class="fas fa-columns icon-btn" title="Toggle Split View" onclick="toggleSplitView()"></i>
+        <i class="fas fa-robot icon-btn btn-ai" title="Tombol AI Workspace" onclick="window.location.href='ai.html'"></i>
         <i class="fas fa-sign-out-alt icon-btn" style="margin-top: auto;" title="Keluar / Ganti API" onclick="window.location.href='login.html'"></i>
     </div>
 
@@ -184,6 +184,9 @@
             } else {
                 paneR.style.display = "none";
             }
+            // Trigger layouting ulang Monaco Editor setelah perubahan ukuran container
+            if(editorL) editorL.layout();
+            if(editorR) editorR.layout();
         }
 
         function searchFiles() {
@@ -204,12 +207,11 @@
             document.getElementById('terminalBox').innerHTML += `<br><span style="color:#f1c40f;">[RUNNING] Meminta hasil eksekusi dari AI (${provider})...</span>`;
             
             try {
-// Pastikan baris pemanggilan fetch di dalam fungsi runActiveCode Anda diubah menjadi seperti ini:
-               const res = await fetch('/api/run', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ provider, apiKey, code: editorL.getValue(), language: files[activeFile].lang })
-            });
+                const res = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ provider, apiKey, code: editorL.getValue(), language: files[activeFile].lang })
+                });
                 const data = await res.json();
                 if(data.error) throw new Error(data.error);
                 document.getElementById('terminalBox').innerHTML += `<br><span style="color:#2ecc71;">${data.output.replace(/\n/g, '<br>')}</span>`;
