@@ -204,11 +204,12 @@
             document.getElementById('terminalBox').innerHTML += `<br><span style="color:#f1c40f;">[RUNNING] Meminta hasil eksekusi dari AI (${provider})...</span>`;
             
             try {
-                const res = await fetch('/api/run', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ provider, apiKey, code: editorL.getValue(), language: files[activeFile].lang })
-                });
+// Pastikan baris pemanggilan fetch di dalam fungsi runActiveCode Anda diubah menjadi seperti ini:
+               const res = await fetch('/api/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ provider, apiKey, code: editorL.getValue(), language: files[activeFile].lang })
+            });
                 const data = await res.json();
                 if(data.error) throw new Error(data.error);
                 document.getElementById('terminalBox').innerHTML += `<br><span style="color:#2ecc71;">${data.output.replace(/\n/g, '<br>')}</span>`;
