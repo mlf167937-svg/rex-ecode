@@ -1,4 +1,3 @@
-require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -11,12 +10,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
-// API 1: Chat Assistant Biasa
+// API 1: Chat Assistant
 app.post('/api/chat', async (req, res) => {
     try {
+        const apiKey = req.headers['x-groq-key'];
+        if (!apiKey) return res.status(401).json({ error: "API Key Groq belum dimasukkan. Refresh halaman untuk mengatur API Key." });
+
+        const groq = new Groq({ apiKey: apiKey });
         const { message, codeContext } = req.body;
+        
         let prompt = "Anda adalah AI Assistant programmer ahli. Jawab menggunakan bahasa Indonesia dengan ramah, singkat, dan tepat sasaran.";
         if (codeContext) prompt += `\n\nKonteks Kode:\n${codeContext}`;
 
@@ -27,14 +29,19 @@ app.post('/api/chat', async (req, res) => {
         });
         res.json({ reply: chat.choices[0].message.content });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: "API Key salah atau server sibuk." });
     }
 });
 
 // API 2: Mode Compiler (Run Code)
 app.post('/api/run', async (req, res) => {
     try {
+        const apiKey = req.headers['x-groq-key'];
+        if (!apiKey) return res.status(401).json({ error: "API Key dibutuhkan untuk simulasi compiler Python/JS." });
+
+        const groq = new Groq({ apiKey: apiKey });
         const { code, language } = req.body;
+        
         const prompt = `You are a strict ${language} compiler. Execute the code and return ONLY the standard output or error message. Do not use markdown. Start directly with the output.`;
 
         const chat = await groq.chat.completions.create({
@@ -44,13 +51,17 @@ app.post('/api/run', async (req, res) => {
         });
         res.json({ output: chat.choices[0].message.content });
     } catch (error) {
-        res.status(500).json({ error: "Gagal eksekusi kode." });
+        res.status(500).json({ error: "Gagal eksekusi kode. Pastikan API Key valid." });
     }
 });
 
 // API 3: Mode Edit Kode (Klik Kanan)
 app.post('/api/edit', async (req, res) => {
     try {
+        const apiKey = req.headers['x-groq-key'];
+        if (!apiKey) return res.status(401).json({ error: "Fitur AI dinonaktifkan." });
+
+        const groq = new Groq({ apiKey: apiKey });
         const { code, action } = req.body;
         let prompt = "";
         
@@ -65,7 +76,7 @@ app.post('/api/edit', async (req, res) => {
         });
         res.json({ reply: chat.choices[0].message.content });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: "Gagal menganalisa kode." });
     }
 });
 
